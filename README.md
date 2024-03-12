@@ -28,14 +28,14 @@ using Waifuvault;
 
 To Upload a file, use the `uploadFile` function. This function takes the following options as an object:
 
-| Option         | Type               | Description                                                 | Required       | Extra info                       |
-|----------------|--------------------|-------------------------------------------------------------|----------------|----------------------------------|
-| `filename`       | `string ` | The path to the file to upload      | true if File          | File path                 |
-| `url`  | `string`           | The URL of the file to target              | true if URL | Filename with extension          |
-| `buffer` | `byte array` | Byte array containing file to upload | true if buffer | Needs filename set also |
-| `expires`      | `string`           | A string containing a number and a unit (1d = 1day)         | false          | Valid units are `m`, `h` and `d` |
-| `hideFilename` | `boolean`          | If true, then the uploaded filename won't appear in the URL | false          | Defaults to `false`              |
-| `password`     | `string`           | If set, then the uploaded file will be encrypted            | false          |                                  |
+| Option         | Type         | Description                                                 | Required       | Extra info                       |
+|----------------|--------------|-------------------------------------------------------------|----------------|----------------------------------|
+| `filename`     | `string `    | The path to the file to upload                              | true if File   | File path                        |
+| `url`          | `string`     | The URL of the file to target                               | true if URL    | Filename with extension          |
+| `buffer`       | `byte array` | Byte array containing file to upload                        | true if buffer | Needs filename set also          |
+| `expires`      | `string`     | A string containing a number and a unit (1d = 1day)         | false          | Valid units are `m`, `h` and `d` |
+| `hideFilename` | `boolean`    | If true, then the uploaded filename won't appear in the URL | false          | Defaults to `false`              |
+| `password`     | `string`     | If set, then the uploaded file will be encrypted            | false          |                                  |
 
 Using a URL:
 
@@ -132,6 +132,7 @@ Use the `getFile` function. This function takes the following options an object:
 | `token`    | `string` | The token of the file you want to download | true only if `filename` is not set | if `filename` is set, then this can not be used |
 | `url`      | `string` | The URL of the file                        | true only if `token` is not set    | if `token` is set, then this can not be used    |
 | `password` | `string` | The password for the file                  | true if file is encrypted          | Passed as a parameter on the function call      |
+
 Password is provided as a parameter on the call.
 
 > **Important!** The Unique identifier filename is the epoch/filename only if the file uploaded did not have a hidden

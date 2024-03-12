@@ -396,3 +396,12 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+.idea/discord.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/prettier.xml
+.idea/vcs.xml
+.idea/waifuVault-csharp-api.iml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/jsLinters/eslint.xml
+.idea/.gitignore
