@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace waifuvault;
+namespace Waifuvault;
 
 public class Api
 {
@@ -80,16 +80,17 @@ public class Api
         return fileData;
     }
 
-    private static void checkError(HttpResponseMessage? response, bool isDownload) {
+    private static async void checkError(HttpResponseMessage? response, bool isDownload) {
         if(response == null) {
             throw new ArgumentNullException("Response is empty");
         }
         if(!response.IsSuccessStatusCode) {
-            var body = response.Content.ToString();
+            var body = await response.Content.ReadAsStringAsync();
+            var error = JsonSerializer.Deserialize<ErrorResponse>(body);
             if(response.StatusCode == HttpStatusCode.Forbidden && isDownload) {
                 throw new Exception("Password is incorrect");
             }
-            throw new Exception($"Error {response.StatusCode.ToString()} ({body})");
+            throw new Exception($"Error {response.StatusCode.ToString()} ({error.name}:{error.message})");
         }
     }
 
@@ -99,10 +100,10 @@ public class Api
             urlBuilder.Add($"password={fileObj.password}");
         }
         if(!String.IsNullOrEmpty(fileObj.expires)) {
-            urlBuilder.Add($"password={fileObj.expires}");
+            urlBuilder.Add($"expires={fileObj.expires}");
         }
         if(fileObj.hidefilename.HasValue) {
-            urlBuilder.Add($"hidefilename={fileObj.hidefilename.Value}");
+            urlBuilder.Add($"hide_filename={fileObj.hidefilename.Value.ToString().ToLower()}");
         }
         return "https://waifuvault.moe/rest?"+String.Join('&',urlBuilder);
     }
@@ -127,9 +128,18 @@ public class FileUpload
             this.filename = target;
         }
         this.buffer = null;
+        this.expires = expires;
+        this.password = password;
+        this.hidefilename = hidefilename;
     }
 
-    public FileUpload(byte[] buffer, string filename, string? expires = null, string? password = null, bool? hidefilename = null) {}
+    public FileUpload(byte[] buffer, string filename, string? expires = null, string? password = null, bool? hidefilename = null) {
+        this.buffer = buffer;
+        this.filename = filename;
+        this.expires = expires;
+        this.password = password;
+        this.hidefilename = hidefilename;
+    }
 }
 
 public class FileResponse
@@ -140,5 +150,17 @@ public class FileResponse
     public bool? fileprotected { get; set; }
     public string? retentionPeriod { get; set; }
 
-    public FileResponse(string? token = null, string? url = null, bool? fileprotected = null, string? retentionPeriod = null) {}
+    public FileResponse(string? token = null, string? url = null, bool? fileprotected = null, string? retentionPeriod = null) {
+        this.token = token;
+        this.url = url;
+        this.fileprotected = fileprotected;
+        this.retentionPeriod = retentionPeriod;
+    }
+}
+
+public class ErrorResponse
+{
+    public string name { get; set; }
+    public string status { get; set; }
+    public string message { get; set; }
 }
