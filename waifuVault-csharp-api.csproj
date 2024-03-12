@@ -6,7 +6,7 @@
     <Authors>Walker Aldridge (walker@waifuvault.moe)</Authors>
     <Company>waifuvault.moe</Company>
     <PackageTags>waifuvault;temp file hosting</PackageTags>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0,net7.0,net6.0</TargetFramework>
     <RootNamespace>waifuvault</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

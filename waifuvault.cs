@@ -6,7 +6,7 @@ namespace waifuvault;
 
 public class Api
 {
-    public async Task<FileResponse> uploadFile(FileUpload fileObj) {
+    public static async Task<FileResponse> uploadFile(FileUpload fileObj) {
         var client = new HttpClient();
         var targetUrl = buildURL(fileObj);
         var retval = new FileResponse();
@@ -47,19 +47,40 @@ public class Api
         return retval;
     }
 
-    public FileResponse fileInfo(string token, bool formatted) {
-        return new FileResponse();
+    public static async Task<FileResponse> fileInfo(string token, bool formatted) {
+        var client = new HttpClient();
+        var url = $"https://waifuvault.moe/rest/{token}?formatted={formatted}";
+        var infoResponse = await client.GetAsync(url);
+        checkError(infoResponse,false);
+        var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
 
-    public bool deleteFile(string token) {
-        return true; 
+    public static async Task<bool> deleteFile(string token) {
+        var client = new HttpClient();
+        var url = $"https://waifuvault.moe/rest/{token}";
+        var urlResponse = await client.DeleteAsync(url);
+        checkError(urlResponse,false);
+        var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
+        return urlResponseData == "true"; 
     }
 
-    public byte[] getFile(FileResponse fileObj, string? password = null) {
-        return new byte[1];
+    public static async Task<byte[]> getFile(FileResponse fileObj, string? password = null) {
+        var client = new HttpClient();
+        if(String.IsNullOrEmpty(fileObj.url) && !String.IsNullOrEmpty(fileObj.token)) {
+            var fileUrl = await fileInfo(fileObj.token,false);
+            fileObj.url = fileUrl.url;
+        }
+        if(!String.IsNullOrEmpty(password)) {
+            client.DefaultRequestHeaders.Add("x-password",password);
+        }
+        var fileResponse = await client.GetAsync(fileObj.url);
+        checkError(fileResponse,true);
+        var fileData = await fileResponse.Content.ReadAsByteArrayAsync();
+        return fileData;
     }
 
-    private void checkError(HttpResponseMessage? response, bool isDownload) {
+    private static void checkError(HttpResponseMessage? response, bool isDownload) {
         if(response == null) {
             throw new ArgumentNullException("Response is empty");
         }
@@ -72,7 +93,7 @@ public class Api
         }
     }
 
-    private string buildURL(FileUpload fileObj) {
+    private static string buildURL(FileUpload fileObj) {
         var urlBuilder = new List<String>();
         if(!String.IsNullOrEmpty(fileObj.password)) {
             urlBuilder.Add($"password={fileObj.password}");
