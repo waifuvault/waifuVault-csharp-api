@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>waifuvault</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Walker Aldridge (walker@waifuvault.moe)</Authors>
+    <Company>waifuvault.moe</Company>
+    <PackageTags>waifuvault;temp file hosting</PackageTags>
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>waifuvault</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
