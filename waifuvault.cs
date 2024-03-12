@@ -161,6 +161,6 @@ public class FileResponse
 public class ErrorResponse
 {
     public string name { get; set; }
-    public string status { get; set; }
+    public int status { get; set; }
     public string message { get; set; }
 }
