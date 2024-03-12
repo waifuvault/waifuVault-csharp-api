@@ -6,10 +6,16 @@
     <Authors>Walker Aldridge (walker@waifuvault.moe)</Authors>
     <Company>waifuvault.moe</Company>
     <PackageTags>waifuvault;temp file hosting</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>Waifuvault</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
 </Project>
