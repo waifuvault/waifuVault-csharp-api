@@ -1,8 +1,28 @@
-﻿namespace waifuvault;
+﻿using System.Net;
+
+namespace waifuvault;
 
 public class Api
 {
+    public FileResponse uploadFile(FileUpload fileObj) {
+        return new FileResponse();
+    }
 
+    public FileResponse fileInfo(string token, bool formatted) {
+        return new FileResponse();
+    }
+
+    public bool deleteFile(string token) {
+        return true; 
+    }
+
+    public byte[] getFile(FileResponse fileObj, string? password = null) {
+        return new byte[1];
+    }
+
+    private void checkError(string response, bool isDownload) {
+        
+    }
 }
 
 public class FileUpload
