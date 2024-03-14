@@ -6,7 +6,7 @@ with [waifuvault.moe](https://waifuvault.moe/). Contains a full up to date API f
 ## Installation
 
 ```sh
-dotnet install Waifuvault
+dotnet add package Waifuvault
 ```
 
 ## Usage

@@ -6,6 +6,7 @@ namespace Waifuvault;
 
 public class Api
 {
+    public const string baseURL = "https://waifuvault.moe/rest";
     public static async Task<FileResponse> uploadFile(FileUpload fileObj) {
         var client = new HttpClient();
         var targetUrl = buildURL(fileObj);
@@ -49,7 +50,7 @@ public class Api
 
     public static async Task<FileResponse> fileInfo(string token, bool formatted) {
         var client = new HttpClient();
-        var url = $"https://waifuvault.moe/rest/{token}?formatted={formatted}";
+        var url = $"{baseURL}/{token}?formatted={formatted}";
         var infoResponse = await client.GetAsync(url);
         checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
@@ -58,7 +59,7 @@ public class Api
 
     public static async Task<bool> deleteFile(string token) {
         var client = new HttpClient();
-        var url = $"https://waifuvault.moe/rest/{token}";
+        var url = $"{baseURL}/{token}";
         var urlResponse = await client.DeleteAsync(url);
         checkError(urlResponse,false);
         var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
@@ -105,7 +106,7 @@ public class Api
         if(fileObj.hidefilename.HasValue) {
             urlBuilder.Add($"hide_filename={fileObj.hidefilename.Value.ToString().ToLower()}");
         }
-        return "https://waifuvault.moe/rest?"+String.Join('&',urlBuilder);
+        return $"{baseURL}?"+String.Join('&',urlBuilder);
     }
 }
 
