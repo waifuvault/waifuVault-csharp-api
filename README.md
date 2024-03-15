@@ -13,10 +13,10 @@ dotnet add package Waifuvault
 
 This API contains 4 interactions:
 
-1. [Upload File](#upload-file)
-2. [Get File Info](#get-file-info)
-3. [Delete File](#delete-file)
-4. [Get File](#get-file)
+1. Upload File
+2. Get File Info
+3. Delete File
+4. Get File
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -24,7 +24,7 @@ The package is namespaced to `Waifuvault`, so to import it, simply:
 using Waifuvault;
 ```
 
-### Upload File<a id="upload-file"></a>
+### Upload File
 
 To Upload a file, use the `uploadFile` function. This function takes the following options as an object:
 
@@ -72,7 +72,7 @@ var upload_resp = await Waifuvault.Api.uploadFile(upload_file);
 Console.WriteLine(upload_resp.url);
 ```
 
-### Get File Info<a id="get-file-info"></a>
+### Get File Info
 
 If you have a token from your upload. Then you can get file info. This results in the following info:
 
@@ -104,7 +104,7 @@ Console.WriteLine(token_info.url);
 Console.WriteLine(token_info.retentionPeriod);
 ```
 
-### Delete File<a id="delete-file"></a>
+### Delete File
 
 To delete a file, you must supply your token to the `deletefile` function.
 
@@ -120,7 +120,7 @@ var deleted = await Waifuvault.Api.deleteFile(token);
 Console.WriteLine(deleted);
 ```
 
-### Get File<a id="get-file"></a>
+### Get File
 
 This lib also supports obtaining a file from the API as a Buffer by supplying either the token or the unique identifier
 of the file (epoch/filename).
