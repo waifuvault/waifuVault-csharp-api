@@ -133,8 +133,6 @@ Use the `getFile` function. This function takes the following options an object:
 | `url`      | `string` | The URL of the file                        | true only if `token` is not set    | if `token` is set, then this can not be used    |
 | `password` | `string` | The password for the file                  | true if file is encrypted          | Passed as a parameter on the function call      |
 
-Password is provided as a parameter on the call.
-
 > **Important!** The Unique identifier filename is the epoch/filename only if the file uploaded did not have a hidden
 > filename, if it did, then it's just the epoch.
 > For example: `1710111505084/08.png` is the Unique identifier for a standard upload of a file called `08.png`, if this
