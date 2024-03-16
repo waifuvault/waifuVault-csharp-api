@@ -8,8 +8,6 @@ public class Api
 {
     public const string baseURL = "https://waifuvault.moe/rest";
     public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
-        var client = new HttpClient();
-        var cts = new CancellationTokenSource();
         var targetUrl = buildURL(fileObj);
         var retval = new FileResponse();
 
@@ -19,20 +17,14 @@ public class Api
                 {
                     new KeyValuePair<string,string>("url", fileObj.url)
                 });
-            var urlResponse = await client.PutAsync(targetUrl, urlContent, ct != null ? ct.Value : cts.Token);
-            checkError(urlResponse,false);
-            var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
-            retval = JsonSerializer.Deserialize<FileResponse>(urlResponseData);
+            retval = await sendContent(targetUrl, urlContent, ct);
         }
         else if(!String.IsNullOrEmpty(fileObj.filename) && fileObj.buffer == null) {
             // File Upload
             var content = new MultipartFormDataContent();
             using(var fileStream = new FileStream(fileObj.filename, FileMode.Open)) {
                 content.Add(new StreamContent(fileStream), "file", Path.GetFileName(fileObj.filename));
-                var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
-                checkError(fileResponse,false);
-                var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
-                retval = JsonSerializer.Deserialize<FileResponse>(fileResponseData);
+                retval = await sendContent(targetUrl, content, ct);
             }
         }
         else {
@@ -40,10 +32,7 @@ public class Api
             var content = new MultipartFormDataContent();
             using(var memStream = new MemoryStream(fileObj.buffer)) {
                 content.Add(new StreamContent(memStream), "file", fileObj.filename);
-                var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
-                checkError(fileResponse,false);
-                var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
-                retval = JsonSerializer.Deserialize<FileResponse>(fileResponseData);
+                retval = await sendContent(targetUrl, content, ct);
             }
         }
         return retval;
@@ -83,6 +72,15 @@ public class Api
         checkError(fileResponse,true);
         var fileData = await fileResponse.Content.ReadAsByteArrayAsync();
         return fileData;
+    }
+
+    private static async Task<FileResponse> sendContent(string targetUrl, HttpContent content, CancellationToken? ct) {
+        var client = new HttpClient();
+        var cts = new CancellationTokenSource();
+        var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
+        checkError(fileResponse,false);
+        var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<FileResponse>(fileResponseData);
     }
 
     private static async void checkError(HttpResponseMessage? response, bool isDownload) {
