@@ -7,8 +7,9 @@ namespace Waifuvault;
 public class Api
 {
     public const string baseURL = "https://waifuvault.moe/rest";
-    public static async Task<FileResponse> uploadFile(FileUpload fileObj) {
+    public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
         var client = new HttpClient();
+        var cts = new CancellationTokenSource();
         var targetUrl = buildURL(fileObj);
         var retval = new FileResponse();
 
@@ -18,7 +19,7 @@ public class Api
                 {
                     new KeyValuePair<string,string>("url", fileObj.url)
                 });
-            var urlResponse = await client.PutAsync(targetUrl, urlContent);
+            var urlResponse = await client.PutAsync(targetUrl, urlContent, ct != null ? ct.Value : cts.Token);
             checkError(urlResponse,false);
             var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
             retval = JsonSerializer.Deserialize<FileResponse>(urlResponseData);
@@ -28,7 +29,7 @@ public class Api
             var content = new MultipartFormDataContent();
             using(var fileStream = new FileStream(fileObj.filename, FileMode.Open)) {
                 content.Add(new StreamContent(fileStream), "file", Path.GetFileName(fileObj.filename));
-                var fileResponse = await client.PutAsync(targetUrl, content);
+                var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
                 checkError(fileResponse,false);
                 var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
                 retval = JsonSerializer.Deserialize<FileResponse>(fileResponseData);
@@ -39,7 +40,7 @@ public class Api
             var content = new MultipartFormDataContent();
             using(var memStream = new MemoryStream(fileObj.buffer)) {
                 content.Add(new StreamContent(memStream), "file", fileObj.filename);
-                var fileResponse = await client.PutAsync(targetUrl, content);
+                var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
                 checkError(fileResponse,false);
                 var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
                 retval = JsonSerializer.Deserialize<FileResponse>(fileResponseData);
@@ -48,34 +49,37 @@ public class Api
         return retval;
     }
 
-    public static async Task<FileResponse> fileInfo(string token, bool formatted) {
+    public static async Task<FileResponse> fileInfo(string token, bool formatted, CancellationToken? ct = null) {
         var client = new HttpClient();
+        var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}?formatted={formatted}";
-        var infoResponse = await client.GetAsync(url);
+        var infoResponse = await client.GetAsync(url,ct != null ? ct.Value : cts.Token);
         checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
 
-    public static async Task<bool> deleteFile(string token) {
+    public static async Task<bool> deleteFile(string token, CancellationToken? ct = null) {
         var client = new HttpClient();
+        var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}";
-        var urlResponse = await client.DeleteAsync(url);
+        var urlResponse = await client.DeleteAsync(url,ct != null ? ct.Value : cts.Token);
         checkError(urlResponse,false);
         var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
         return urlResponseData == "true"; 
     }
 
-    public static async Task<byte[]> getFile(FileResponse fileObj, string? password = null) {
+    public static async Task<byte[]> getFile(FileResponse fileObj, string? password = null, CancellationToken? ct = null) {
         var client = new HttpClient();
+        var cts = new CancellationTokenSource();
         if(String.IsNullOrEmpty(fileObj.url) && !String.IsNullOrEmpty(fileObj.token)) {
-            var fileUrl = await fileInfo(fileObj.token,false);
+            var fileUrl = await fileInfo(fileObj.token, false, ct != null ? ct.Value : cts.Token);
             fileObj.url = fileUrl.url;
         }
         if(!String.IsNullOrEmpty(password)) {
             client.DefaultRequestHeaders.Add("x-password",password);
         }
-        var fileResponse = await client.GetAsync(fileObj.url);
+        var fileResponse = await client.GetAsync(fileObj.url, ct != null ? ct.Value : cts.Token);
         checkError(fileResponse,true);
         var fileData = await fileResponse.Content.ReadAsByteArrayAsync();
         return fileData;

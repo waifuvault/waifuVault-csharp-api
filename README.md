@@ -36,6 +36,7 @@ To Upload a file, use the `uploadFile` function. This function takes the followi
 | `expires`      | `string`     | A string containing a number and a unit (1d = 1day)         | false          | Valid units are `m`, `h` and `d` |
 | `hideFilename` | `boolean`    | If true, then the uploaded filename won't appear in the URL | false          | Defaults to `false`              |
 | `password`     | `string`     | If set, then the uploaded file will be encrypted            | false          |                                  |
+| `ct`           | `canceltoken`| An optional cancellation token that can be passed in        | false          | Standard cancellation token      |
 
 Using a URL:
 
@@ -72,6 +73,20 @@ var upload_resp = await Waifuvault.Api.uploadFile(upload_file);
 Console.WriteLine(upload_resp.url);
 ```
 
+Cancelable with a file:
+
+```cs:
+using Waifuvault;
+
+var cts = new CancellationTokenSource(2000);  // Auto cancel in 2s
+var cancel_file = new Waifuvault.FileUpload("./largeFile.mkv");
+try {
+    var cancelled = await Waifuvault.Api.uploadFile(cancel_file,cts.Token);
+} catch(OperationCanceledException) {
+    Console.WriteLine("Cancelled upload");
+}
+```
+
 ### Get File Info
 
 If you have a token from your upload. Then you can get file info. This results in the following info:
@@ -87,6 +102,7 @@ Use the `fileInfo` function. This function takes the following options as parame
 |-------------|-----------|--------------------------------------------------------------------|----------|-------------------|
 | `token`     | `string`  | The token of the upload                                            | true     |                   |
 | `formatted` | `boolean` | If you want the `retentionPeriod` to be human-readable or an epoch | false    | defaults to false |
+| `ct`        | `canceltoken`| An optional cancellation token that can be passed in            | false    | Standard cancellation token |
 
 ```cs
 using Waifuvault;
@@ -113,6 +129,7 @@ This function takes the following options as parameters:
 | Option  | Type     | Description                              | Required | Extra info |
 |---------|----------|------------------------------------------|----------|------------|
 | `token` | `string` | The token of the file you wish to delete | true     |            |
+| `ct`    | `canceltoken`| An optional cancellation token that can be passed in            | false    | Standard cancellation token |
 
 ```cs
 using Waifuvault;
@@ -132,6 +149,7 @@ Use the `getFile` function. This function takes the following options an object:
 | `token`    | `string` | The token of the file you want to download | true only if `filename` is not set | if `filename` is set, then this can not be used |
 | `url`      | `string` | The URL of the file                        | true only if `token` is not set    | if `token` is set, then this can not be used    |
 | `password` | `string` | The password for the file                  | true if file is encrypted          | Passed as a parameter on the function call      |
+| `ct`       | `canceltoken`| An optional cancellation token that can be passed in            | false    | Standard cancellation token |
 
 > **Important!** The Unique identifier filename is the epoch/filename only if the file uploaded did not have a hidden
 > filename, if it did, then it's just the epoch.
@@ -156,3 +174,15 @@ var downloaded = await Waifuvault.Api.getFile(file);
 Console.WriteLine(downloaded.Length);
 ```
 
+Obtain file with ability to cancel:
+
+```cs
+using Waifuvault;
+var cts = new CancellationTokenSource(2000);  // Auto cancel in 2s
+var file = new FileResponse(token:your_token);
+try {
+    var cancelled = await Waifuvault.Api.getFile(file, cts.Token);
+} catch(OperationCanceledException) {
+    Console.WriteLine("Canceled download");
+}
+```
