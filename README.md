@@ -75,7 +75,7 @@ Console.WriteLine(upload_resp.url);
 
 Cancelable with a file:
 
-```cs:
+```cs
 using Waifuvault;
 
 var cts = new CancellationTokenSource(2000);  // Auto cancel in 2s
@@ -104,6 +104,8 @@ Use the `fileInfo` function. This function takes the following options as parame
 | `formatted` | `boolean` | If you want the `retentionPeriod` to be human-readable or an epoch | false    | defaults to false |
 | `ct`        | `canceltoken`| An optional cancellation token that can be passed in            | false    | Standard cancellation token |
 
+Epoch timestamp:
+
 ```cs
 using Waifuvault;
 var token_info = await Waifuvault.Api.fileInfo(upload_resp.token,false);
@@ -130,6 +132,8 @@ This function takes the following options as parameters:
 |---------|----------|------------------------------------------|----------|------------|
 | `token` | `string` | The token of the file you wish to delete | true     |            |
 | `ct`    | `canceltoken`| An optional cancellation token that can be passed in            | false    | Standard cancellation token |
+
+Standard delete:
 
 ```cs
 using Waifuvault;
