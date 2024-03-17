@@ -8,8 +8,8 @@ public class Api
 {
     public const string baseURL = "https://waifuvault.moe/rest";
     public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
-        var targetUrl = buildURL(fileObj);
         var retval = new FileResponse();
+        var targetUrl = fileObj.buildURL(baseURL);
 
         if (!String.IsNullOrEmpty(fileObj.url)) {
             // URL Upload
@@ -35,6 +35,7 @@ public class Api
                 retval = await sendContent(targetUrl, content, ct);
             }
         }
+
         return retval;
     }
 
@@ -97,19 +98,7 @@ public class Api
         }
     }
 
-    private static string buildURL(FileUpload fileObj) {
-        var urlBuilder = new List<String>();
-        if(!String.IsNullOrEmpty(fileObj.password)) {
-            urlBuilder.Add($"password={fileObj.password}");
-        }
-        if(!String.IsNullOrEmpty(fileObj.expires)) {
-            urlBuilder.Add($"expires={fileObj.expires}");
-        }
-        if(fileObj.hidefilename.HasValue) {
-            urlBuilder.Add($"hide_filename={fileObj.hidefilename.Value.ToString().ToLower()}");
-        }
-        return $"{baseURL}?"+String.Join('&',urlBuilder);
-    }
+    
 }
 
 public class FileUpload
@@ -142,6 +131,20 @@ public class FileUpload
         this.expires = expires;
         this.password = password;
         this.hidefilename = hidefilename;
+    }
+
+    public string buildURL(string baseURL) {
+        var urlBuilder = new List<String>();
+        if(!String.IsNullOrEmpty(this.password)) {
+            urlBuilder.Add($"password={this.password}");
+        }
+        if(!String.IsNullOrEmpty(this.expires)) {
+            urlBuilder.Add($"expires={this.expires}");
+        }
+        if(this.hidefilename.HasValue) {
+            urlBuilder.Add($"hide_filename={this.hidefilename.Value.ToString().ToLower()}");
+        }
+        return $"{baseURL}?"+String.Join('&',urlBuilder);
     }
 }
 
