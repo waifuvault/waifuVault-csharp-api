@@ -43,10 +43,10 @@ Using a URL:
 ```cs
 using Waifuvault;
 
-var upload_file = new Waifuvault.FileUpload("https://waifuvault.moe/assets/custom/images/08.png");
-var upload_resp = await Waifuvault.Api.uploadFile(upload_file);
+var uploadFile = new Waifuvault.FileUpload("https://waifuvault.moe/assets/custom/images/08.png");
+var uploadResp = await Waifuvault.Api.uploadFile(uploadFile);
 
-Console.WriteLine(upload_resp.url);
+Console.WriteLine(uploadResp.url);
 ```
 
 Using a file path:
@@ -54,10 +54,10 @@ Using a file path:
 ```cs
 using Waifuvault;
 
-var upload_file = new Waifuvault.FileUpload("../aCoolFile.png");
-var upload_resp = await Waifuvault.Api.uploadFile(upload_file);
+var uploadFile = new Waifuvault.FileUpload("../aCoolFile.png");
+var uploadResp = await Waifuvault.Api.uploadFile(uploadFile);
 
-Console.WriteLine(upload_resp.url);
+Console.WriteLine(uploadResp.url);
 ```
 
 Using a buffer:
@@ -67,10 +67,10 @@ using Waifuvault;
 using System.IO;
 
 byte[] buffer = File.ReadAllBytes("./aCoolFile.png");
-var upload_file = new Waifuvault.FileUpload(buffer,"aCoolFile.png");
-var upload_resp = await Waifuvault.Api.uploadFile(upload_file);
+var uploadFile = new Waifuvault.FileUpload(buffer,"aCoolFile.png");
+var uploadResp = await Waifuvault.Api.uploadFile(uploadFile);
 
-Console.WriteLine(upload_resp.url);
+Console.WriteLine(uploadResp.url);
 ```
 
 Cancelable with a file:
@@ -79,9 +79,9 @@ Cancelable with a file:
 using Waifuvault;
 
 var cts = new CancellationTokenSource(2000);  // Auto cancel in 2s
-var cancel_file = new Waifuvault.FileUpload("./largeFile.mkv");
+var cancelFile = new Waifuvault.FileUpload("./largeFile.mkv");
 try {
-    var cancelled = await Waifuvault.Api.uploadFile(cancel_file,cts.Token);
+    var cancelled = await Waifuvault.Api.uploadFile(cancelFile,cts.Token);
 } catch(OperationCanceledException) {
     Console.WriteLine("Cancelled upload");
 }
@@ -108,18 +108,18 @@ Epoch timestamp:
 
 ```cs
 using Waifuvault;
-var token_info = await Waifuvault.Api.fileInfo(upload_resp.token,false);
-Console.WriteLine(token_info.url);
-Console.WriteLine(token_info.retentionPeriod);
+var tokenInfo = await Waifuvault.Api.fileInfo(uploadResp.token,false);
+Console.WriteLine(tokenInfo.url);
+Console.WriteLine(tokenInfo.retentionPeriod);
 ```
 
 Human-readable timestamp:
 
 ```cs
 using Waifuvault;
-var token_info = await Waifuvault.Api.fileInfo(upload_resp.token,true);
-Console.WriteLine(token_info.url);
-Console.WriteLine(token_info.retentionPeriod);
+var tokenInfo = await Waifuvault.Api.fileInfo(uploadResp.token,true);
+Console.WriteLine(tokenInfo.url);
+Console.WriteLine(tokenInfo.retentionPeriod);
 ```
 
 ### Delete File

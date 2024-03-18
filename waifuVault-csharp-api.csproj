@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Waifuvault</PackageId>
-    <Version>1.1.7</Version>
+    <Version>1.1.8</Version>
     <Authors>Walker Aldridge (walker@waifuvault.moe)</Authors>
     <Company>waifuvault.moe</Company>
     <PackageTags>waifuvault;temp file hosting;waifu;vault</PackageTags>
