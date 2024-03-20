@@ -46,10 +46,7 @@ public class Api
         var infoResponse = await client.GetAsync(url,ct != null ? ct.Value : cts.Token);
         checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
-        var opts = new JsonSerializerOptions(){
-            NumberHandling = JsonNumberHandling.WriteAsString
-        };
-        return JsonSerializer.Deserialize<FileResponse>(infoResponseData,opts) ?? new FileResponse();
+        return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
 
     public static async Task<FileResponse> fileUpdate(string token, string? password = null, string? previousPassword = null, string? customExpiry = null, bool hideFilename = false, CancellationToken? ct = null) {
@@ -66,10 +63,7 @@ public class Api
         var infoResponse = await client.PatchAsync(url, content);
         checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
-        var opts = new JsonSerializerOptions(){
-            NumberHandling = JsonNumberHandling.WriteAsString
-        };
-        return JsonSerializer.Deserialize<FileResponse>(infoResponseData,opts) ?? new FileResponse();
+        return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
 
     public static async Task<bool> deleteFile(string token, CancellationToken? ct = null) {
@@ -104,10 +98,7 @@ public class Api
         var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
         checkError(fileResponse,false);
         var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
-        var opts = new JsonSerializerOptions(){
-            NumberHandling = JsonNumberHandling.WriteAsString
-        };
-        return JsonSerializer.Deserialize<FileResponse>(fileResponseData,opts);
+        return JsonSerializer.Deserialize<FileResponse>(fileResponseData);
     }
 
     private static async void checkError(HttpResponseMessage? response, bool isDownload) {
@@ -185,6 +176,7 @@ public class FileResponse
     public string? url { get; set; }
     [JsonPropertyName("protected")]
     public bool? fileprotected { get; set; }
+    [JsonConverter(typeof(StringConverter))]
     public string? retentionPeriod { get; set; }
 
     public FileResponse(string? token = null, string? url = null, bool? fileprotected = null, string? retentionPeriod = null) {
@@ -200,4 +192,26 @@ public class ErrorResponse
     public string name { get; set; }
     public int status { get; set; }
     public string message { get; set; }
+}
+
+public class StringConverter : JsonConverter<string>
+{
+    public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Number)
+        {
+            return reader.GetInt32().ToString();
+        }
+        else if (reader.TokenType == JsonTokenType.String)
+        {
+            return reader.GetString();
+        }
+
+        return null;
+    }
+
+    public override void Write(Utf8JsonWriter writer, string? value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value);
+    }
 }
