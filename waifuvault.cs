@@ -53,13 +53,21 @@ public class Api
         var client = new HttpClient();
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}";
-        var content = new FormUrlEncodedContent(new []
-                {
-                    new KeyValuePair<string,string>("password", password),
-                    new KeyValuePair<string,string>("previousPassword", previousPassword),
-                    new KeyValuePair<string,string>("customExpiry", customExpiry),
-                    new KeyValuePair<string,string>("hideFilename", hideFilename.ToString().ToLower())
-                });
+        var fields = new List<KeyValuePair<string,string>>();
+        if (password!=null) {
+            fields.Add(new KeyValuePair<string,string>("password", password));
+        }
+        if (previousPassword!=null) {
+            fields.Add(new KeyValuePair<string,string>("previousPassword", previousPassword));
+        }
+        if (previousPassword!=null) {
+            fields.Add(new KeyValuePair<string,string>("previousPassword", previousPassword));
+        }
+        if (customExpiry!=null) {
+            fields.Add(new KeyValuePair<string,string>("customExpiry", customExpiry));
+        }
+        fields.Add(new KeyValuePair<string,string>("hideFilename", hideFilename.ToString().ToLower()));
+        var content = new FormUrlEncodedContent(fields.ToArray());
         var infoResponse = await client.PatchAsync(url, content);
         checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
