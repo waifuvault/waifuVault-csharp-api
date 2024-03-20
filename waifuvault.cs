@@ -107,7 +107,13 @@ public class Api
         }
         if(!response.IsSuccessStatusCode) {
             var body = await response.Content.ReadAsStringAsync();
-            var error = JsonSerializer.Deserialize<ErrorResponse>(body);
+            ErrorResponse error = new ErrorResponse();
+            try {
+                error = JsonSerializer.Deserialize<ErrorResponse>(body);
+            } catch {
+                error.name = "Deserialization Failed";
+                error.message = body;
+            }
             if(response.StatusCode == HttpStatusCode.Forbidden && isDownload) {
                 throw new Exception("Password is incorrect");
             }
@@ -115,7 +121,6 @@ public class Api
         }
     }
 
-    
 }
 
 public class FileUpload
