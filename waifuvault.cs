@@ -46,7 +46,10 @@ public class Api
         var infoResponse = await client.GetAsync(url,ct != null ? ct.Value : cts.Token);
         checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
+        var opts = new JsonSerializerOptions(){
+            NumberHandling = JsonNumberHandling.WriteAsString
+        };
+        return JsonSerializer.Deserialize<FileResponse>(infoResponseData,opts) ?? new FileResponse();
     }
 
     public static async Task<FileResponse> fileUpdate(string token, string? password = null, string? previousPassword = null, string? customExpiry = null, bool hideFilename = false, CancellationToken? ct = null) {
@@ -63,7 +66,10 @@ public class Api
         var infoResponse = await client.PatchAsync(url, content);
         checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
+        var opts = new JsonSerializerOptions(){
+            NumberHandling = JsonNumberHandling.WriteAsString
+        };
+        return JsonSerializer.Deserialize<FileResponse>(infoResponseData,opts) ?? new FileResponse();
     }
 
     public static async Task<bool> deleteFile(string token, CancellationToken? ct = null) {
@@ -98,7 +104,10 @@ public class Api
         var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
         checkError(fileResponse,false);
         var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<FileResponse>(fileResponseData);
+        var opts = new JsonSerializerOptions(){
+            NumberHandling = JsonNumberHandling.WriteAsString
+        };
+        return JsonSerializer.Deserialize<FileResponse>(fileResponseData,opts);
     }
 
     private static async void checkError(HttpResponseMessage? response, bool isDownload) {
