@@ -49,6 +49,23 @@ public class Api
         return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
 
+    public static async Task<FileResponse> fileUpdate(string token, string? password = null, string? previousPassword = null, string? customExpiry = null, bool hideFilename = false, CancellationToken? ct = null) {
+        var client = new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/{token}";
+        var content = new FormUrlEncodedContent(new []
+                {
+                    new KeyValuePair<string,string>("password", password),
+                    new KeyValuePair<string,string>("previousPassword", previousPassword),
+                    new KeyValuePair<string,string>("customExpiry", customExpiry),
+                    new KeyValuePair<string,string>("hideFilename", hideFilename.ToString().ToLower())
+                });
+        var infoResponse = await client.PatchAsync(url, content);
+        checkError(infoResponse,false);
+        var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
+    }
+
     public static async Task<bool> deleteFile(string token, CancellationToken? ct = null) {
         var client = new HttpClient();
         var cts = new CancellationTokenSource();
