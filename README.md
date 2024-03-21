@@ -11,12 +11,13 @@ dotnet add package Waifuvault
 
 ## Usage
 
-This API contains 4 interactions:
+This API contains 5 interactions:
 
 1. Upload File
 2. Get File Info
-3. Delete File
-4. Get File
+3. Update File Info
+4. Delete File
+5. Get File
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -120,6 +121,27 @@ using Waifuvault;
 var tokenInfo = await Waifuvault.Api.fileInfo(uploadResp.token,true);
 Console.WriteLine(tokenInfo.url);
 Console.WriteLine(tokenInfo.retentionPeriod);
+```
+
+### Update File Info
+
+If you have a token from your upload, then you can update the information for the file.  You can change the password or remove it, 
+you can set custom expiry time or remove it, and finally you can choose whether the filename is hidden.
+
+Use the `fileUpdate` function. This function takes the following options as parameters:
+
+| Option              | Type     | Description                                             | Required | Extra info                                  |
+|---------------------|----------|---------------------------------------------------------|----------|---------------------------------------------|
+| `token`             | `string` | The token of the upload                                 | true     |                                             |
+| `password`          | `string` | The current password of the file                        | false    | Set to empty string to remove password      |
+| `previousPassword`  | `string` | The previous password of the file, if changing password | false    |                                             |
+| `customExpiry`      | `string` | Custom expiry in the same form as upload command        | false    | Set to empty string to remove custom expiry |
+| `hideFilename`      | `bool`   | Sets whether the filename is visible in the URL or not  | false    |                                             |
+
+```cs
+using Waifuvault;
+var updateInfo = await Waifuvault.Api.fileUpdate(uploadResp.token, customExpiry:"2d");
+Console.WriteLine(updateInfo.retentionPeriod);
 ```
 
 ### Delete File

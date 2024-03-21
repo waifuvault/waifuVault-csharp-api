@@ -51,14 +51,10 @@ public class Api
 
     public static async Task<FileResponse> fileUpdate(string token, string? password = null, string? previousPassword = null, string? customExpiry = null, bool hideFilename = false, CancellationToken? ct = null) {
         var client = new HttpClient();
-        var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}";
         var fields = new List<KeyValuePair<string,string>>();
         if (password!=null) {
             fields.Add(new KeyValuePair<string,string>("password", password));
-        }
-        if (previousPassword!=null) {
-            fields.Add(new KeyValuePair<string,string>("previousPassword", previousPassword));
         }
         if (previousPassword!=null) {
             fields.Add(new KeyValuePair<string,string>("previousPassword", previousPassword));
