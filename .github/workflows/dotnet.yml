@@ -20,7 +20,7 @@ jobs:
       with:
         filters: |
           project:
-            - 'waifuVault=csharp-api.csproj'
+            - 'waifuVault-csharp-api.csproj'
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
