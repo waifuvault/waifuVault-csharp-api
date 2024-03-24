@@ -1,6 +1,6 @@
 # Publish package
 
-name: .NET
+name: Deploy
 
 on:
   push:
@@ -13,6 +13,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: filter changes
+      uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          project:
+            - 'waifuVault=csharp-api.csproj'
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -22,4 +31,5 @@ jobs:
     - name: Build
       run: dotnet pack
     - name: Publish
+      if: steps.changes.outputs.project == 'true'
       run: dotnet nuget push bin/Release/*.nupkg --api-key ${{ secrets.NUGET_API_TOKEN }} --source https://api.nuget.org/v3/index.json
