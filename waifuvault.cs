@@ -7,6 +7,8 @@ namespace Waifuvault;
 public class Api
 {
     public const string baseURL = "https://waifuvault.moe/rest";
+    public static HttpClient? customHttpClient;
+
     public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
         var retval = new FileResponse();
         var targetUrl = fileObj.buildURL(baseURL);
@@ -40,7 +42,7 @@ public class Api
     }
 
     public static async Task<FileResponse> fileInfo(string token, bool formatted, CancellationToken? ct = null) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}?formatted={formatted}";
         var infoResponse = await client.GetAsync(url,ct != null ? ct.Value : cts.Token);
@@ -50,7 +52,7 @@ public class Api
     }
 
     public static async Task<FileResponse> fileUpdate(string token, string? password = null, string? previousPassword = null, string? customExpiry = null, bool hideFilename = false, CancellationToken? ct = null) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var url = $"{baseURL}/{token}";
         var fields = new List<KeyValuePair<string,string>>();
         if (password!=null) {
@@ -71,7 +73,7 @@ public class Api
     }
 
     public static async Task<bool> deleteFile(string token, CancellationToken? ct = null) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}";
         var urlResponse = await client.DeleteAsync(url,ct != null ? ct.Value : cts.Token);
@@ -81,7 +83,7 @@ public class Api
     }
 
     public static async Task<byte[]> getFile(FileResponse fileObj, string? password = null, CancellationToken? ct = null) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         if(String.IsNullOrEmpty(fileObj.url) && !String.IsNullOrEmpty(fileObj.token)) {
             var fileUrl = await fileInfo(fileObj.token, false, ct != null ? ct.Value : cts.Token);
@@ -97,7 +99,7 @@ public class Api
     }
 
     private static async Task<FileResponse> sendContent(string targetUrl, HttpContent content, CancellationToken? ct) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
         checkError(fileResponse,false);
