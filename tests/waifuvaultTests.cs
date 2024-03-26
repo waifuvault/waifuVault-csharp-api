@@ -77,24 +77,59 @@ public class waifuvaultTests
             })
             .Verifiable();
     }
-    
-    [Fact]
-    public void SimpleTest()
-    {
-        var uploadfile = new Waifuvault.FileUpload("filetarget.png");
-        Assert.Equal("filetarget.png",uploadfile.filename);
-    }
 
     [Fact]
-    public async void TestUpload() {
+    public async void TestURLUpload() {
         // Given
+        okResponseNumeric.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
         var upload = new Waifuvault.FileUpload("https://walker.moe/assets/sunflowers.png",expires:"10m");
         
-        // Then
+        // When
         var response = await Waifuvault.Api.uploadFile(upload);
         
+        // Then
+        okResponseNumeric.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Put),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("https://waifuvault.moe/f/something",response.url);
+        Assert.Equal("test-token", response.token);
+        Assert.Equal(false,response.fileprotected);
+        Assert.Equal("100", response.retentionPeriod);
+    }
+
+    [Fact]
+    public async void TestFileUpload() {
+        // Given
+        okResponseNumeric.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
+        var upload = new Waifuvault.FileUpload("test.png",expires:"10m");
+        
         // When
+        var response = await Waifuvault.Api.uploadFile(upload);
+        
+        // Then
+        okResponseNumeric.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Put),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("https://waifuvault.moe/f/something",response.url);
+        Assert.Equal("test-token", response.token);
+        Assert.Equal(false,response.fileprotected);
+        Assert.Equal("100", response.retentionPeriod);
+    }
+
+    [Fact]
+    public async void TestBufferUpload() {
+        // Given
+        okResponseNumeric.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
+        byte[] buffer = File.ReadAllBytes("test.png");
+        var upload = new Waifuvault.FileUpload(buffer,"test.png",expires:"10m");
+        
+        // When
+        var response = await Waifuvault.Api.uploadFile(upload);
+        
+        // Then
         okResponseNumeric.Protected().Verify("SendAsync",Times.Once(),
             ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Put),
             ItExpr.IsAny<CancellationToken>());
@@ -107,12 +142,13 @@ public class waifuvaultTests
     [Fact]
     public async void TestFileInfo() {
         // Given
+        okResponseHuman.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseHuman.Object);
         
-        // Then
+        // When
         var response = await Waifuvault.Api.fileInfo("test-token",true);
         
-        // When
+        // Then
         okResponseHuman.Protected().Verify("SendAsync",Times.Once(),
             ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get),
             ItExpr.IsAny<CancellationToken>());
@@ -125,12 +161,13 @@ public class waifuvaultTests
     [Fact]
     public async void TestUpdateInfo() {
         // Given
+        okResponseNumericProtected.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumericProtected.Object);
         
-        // Then
+        // When
         var response = await Waifuvault.Api.fileUpdate("test-token","dangerWaifu");
         
-        // When
+        // Then
         okResponseNumericProtected.Protected().Verify("SendAsync",Times.Once(),
             ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Patch),
             ItExpr.IsAny<CancellationToken>());
@@ -143,12 +180,13 @@ public class waifuvaultTests
     [Fact]
     public async void TestDelete() {
         // Given
+        deleteTrue.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(deleteTrue.Object);
         
-        // Then
+        // When
         var response = await Waifuvault.Api.deleteFile("test-token");
         
-        // When
+        // Then
         deleteTrue.Protected().Verify("SendAsync",Times.Once(),
             ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Delete),
             ItExpr.IsAny<CancellationToken>());

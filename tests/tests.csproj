@@ -35,4 +35,10 @@
     <ProjectReference Include="..\waifuVault-csharp-api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="test.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
