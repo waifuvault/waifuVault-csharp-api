@@ -11,6 +11,7 @@ public class waifuvaultTests
     public Mock<HttpMessageHandler> okResponseHuman = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> deleteTrue = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> badRequest = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> fileReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
 
     public waifuvaultTests() {
         setupMocks();
@@ -74,6 +75,18 @@ public class waifuvaultTests
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent("true")
+            })
+            .Verifiable();
+
+        fileReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new ByteArrayContent(new byte[4] {0x00, 0x01, 0x01, 0x00})
             })
             .Verifiable();
     }
@@ -191,5 +204,23 @@ public class waifuvaultTests
             ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Delete),
             ItExpr.IsAny<CancellationToken>());
         Assert.True(response);
+    }
+
+    [Fact]
+    public async void TestDownload() {
+        // Given
+        fileReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(fileReturn.Object);
+        var file = new Waifuvault.FileResponse("test-token","https://waifuvault.moe/f/something");
+        
+        // When
+        var response = await Waifuvault.Api.getFile(file,"dangerWaifu");
+        
+        // Then
+        fileReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get
+                                            && req.Headers.Contains("x-password") ),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.True(response.GetType() == typeof(byte[]));
     }
 }
