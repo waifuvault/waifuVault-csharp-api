@@ -7,6 +7,8 @@ namespace Waifuvault;
 public class Api
 {
     public const string baseURL = "https://waifuvault.moe/rest";
+    public static HttpClient? customHttpClient;
+
     public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
         var retval = new FileResponse();
         var targetUrl = fileObj.buildURL(baseURL);
@@ -40,17 +42,17 @@ public class Api
     }
 
     public static async Task<FileResponse> fileInfo(string token, bool formatted, CancellationToken? ct = null) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}?formatted={formatted}";
         var infoResponse = await client.GetAsync(url,ct != null ? ct.Value : cts.Token);
-        checkError(infoResponse,false);
+        await checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
 
     public static async Task<FileResponse> fileUpdate(string token, string? password = null, string? previousPassword = null, string? customExpiry = null, bool hideFilename = false, CancellationToken? ct = null) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var url = $"{baseURL}/{token}";
         var fields = new List<KeyValuePair<string,string>>();
         if (password!=null) {
@@ -65,23 +67,23 @@ public class Api
         fields.Add(new KeyValuePair<string,string>("hideFilename", hideFilename.ToString().ToLower()));
         var content = new FormUrlEncodedContent(fields.ToArray());
         var infoResponse = await client.PatchAsync(url, content);
-        checkError(infoResponse,false);
+        await checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
 
     public static async Task<bool> deleteFile(string token, CancellationToken? ct = null) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}";
         var urlResponse = await client.DeleteAsync(url,ct != null ? ct.Value : cts.Token);
-        checkError(urlResponse,false);
+        await checkError(urlResponse,false);
         var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
         return urlResponseData == "true"; 
     }
 
     public static async Task<byte[]> getFile(FileResponse fileObj, string? password = null, CancellationToken? ct = null) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         if(String.IsNullOrEmpty(fileObj.url) && !String.IsNullOrEmpty(fileObj.token)) {
             var fileUrl = await fileInfo(fileObj.token, false, ct != null ? ct.Value : cts.Token);
@@ -91,21 +93,21 @@ public class Api
             client.DefaultRequestHeaders.Add("x-password",password);
         }
         var fileResponse = await client.GetAsync(fileObj.url, ct != null ? ct.Value : cts.Token);
-        checkError(fileResponse,true);
+        await checkError(fileResponse,true);
         var fileData = await fileResponse.Content.ReadAsByteArrayAsync();
         return fileData;
     }
 
     private static async Task<FileResponse> sendContent(string targetUrl, HttpContent content, CancellationToken? ct) {
-        var client = new HttpClient();
+        var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
-        checkError(fileResponse,false);
+        await checkError(fileResponse,false);
         var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<FileResponse>(fileResponseData);
     }
 
-    private static async void checkError(HttpResponseMessage? response, bool isDownload) {
+    private static async Task checkError(HttpResponseMessage? response, bool isDownload) {
         if(response == null) {
             throw new ArgumentNullException("Response is empty");
         }
@@ -124,7 +126,6 @@ public class Api
             throw new Exception($"Error {response.StatusCode.ToString()} ({error.name}:{error.message})");
         }
     }
-
 }
 
 public class FileUpload

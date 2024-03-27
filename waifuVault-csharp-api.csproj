@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Waifuvault</PackageId>
-    <Version>1.2.4</Version>
+    <Version>1.2.5</Version>
     <Authors>Walker Aldridge (walker@waifuvault.moe)</Authors>
     <Company>waifuvault.moe</Company>
     <PackageTags>waifuvault;temp file hosting;waifu;vault</PackageTags>
@@ -12,10 +12,19 @@
     <RootNamespace>Waifuvault</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\"/>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="moq" Version="4.20.70" Pack="false"/>
+    <PackageReference Include="Xunit" Version="2.7.0" Pack="false"/>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" Pack="false"/>
+    <PackageReference Include="xunit.abstractions" Version="2.0.3" Pack="false"/>
   </ItemGroup>
 
 </Project>
