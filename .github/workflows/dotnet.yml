@@ -1,6 +1,6 @@
 # Publish package
 
-name: Deploy
+name: Test and Deploy
 
 on:
   push:
@@ -28,6 +28,8 @@ jobs:
         dotnet-version: 8.0.x
     - name: Restore dependencies
       run: dotnet restore
+    - name: Test
+      run: dotnet test tests
     - name: Build
       run: dotnet pack
     - name: Publish
