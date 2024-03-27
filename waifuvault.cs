@@ -46,7 +46,7 @@ public class Api
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}?formatted={formatted}";
         var infoResponse = await client.GetAsync(url,ct != null ? ct.Value : cts.Token);
-        checkError(infoResponse,false);
+        await checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
@@ -67,7 +67,7 @@ public class Api
         fields.Add(new KeyValuePair<string,string>("hideFilename", hideFilename.ToString().ToLower()));
         var content = new FormUrlEncodedContent(fields.ToArray());
         var infoResponse = await client.PatchAsync(url, content);
-        checkError(infoResponse,false);
+        await checkError(infoResponse,false);
         var infoResponseData = await infoResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<FileResponse>(infoResponseData) ?? new FileResponse();
     }
@@ -77,7 +77,7 @@ public class Api
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/{token}";
         var urlResponse = await client.DeleteAsync(url,ct != null ? ct.Value : cts.Token);
-        checkError(urlResponse,false);
+        await checkError(urlResponse,false);
         var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
         return urlResponseData == "true"; 
     }
@@ -93,7 +93,7 @@ public class Api
             client.DefaultRequestHeaders.Add("x-password",password);
         }
         var fileResponse = await client.GetAsync(fileObj.url, ct != null ? ct.Value : cts.Token);
-        checkError(fileResponse,true);
+        await checkError(fileResponse,true);
         var fileData = await fileResponse.Content.ReadAsByteArrayAsync();
         return fileData;
     }
@@ -102,12 +102,12 @@ public class Api
         var client = customHttpClient!=null ? customHttpClient : new HttpClient();
         var cts = new CancellationTokenSource();
         var fileResponse = await client.PutAsync(targetUrl, content, ct != null ? ct.Value : cts.Token);
-        checkError(fileResponse,false);
+        await checkError(fileResponse,false);
         var fileResponseData = await fileResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<FileResponse>(fileResponseData);
     }
 
-    private static async void checkError(HttpResponseMessage? response, bool isDownload) {
+    private static async Task checkError(HttpResponseMessage? response, bool isDownload) {
         if(response == null) {
             throw new ArgumentNullException("Response is empty");
         }
@@ -126,7 +126,6 @@ public class Api
             throw new Exception($"Error {response.StatusCode.ToString()} ({error.name}:{error.message})");
         }
     }
-
 }
 
 public class FileUpload

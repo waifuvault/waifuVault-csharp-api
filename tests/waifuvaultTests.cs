@@ -60,7 +60,7 @@ public class waifuvaultTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage(){
+            .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest){
                 StatusCode = System.Net.HttpStatusCode.BadRequest,
                 Content = new StringContent("{\"name\": \"BAD_REQUEST\", \"message\": \"Error Test\", \"status\": 400}")
             })
@@ -92,7 +92,7 @@ public class waifuvaultTests
     }
 
     [Fact]
-    public async void TestURLUpload() {
+    public async Task TestURLUpload() {
         // Given
         okResponseNumeric.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
@@ -112,7 +112,7 @@ public class waifuvaultTests
     }
 
     [Fact]
-    public async void TestFileUpload() {
+    public async Task TestFileUpload() {
         // Given
         okResponseNumeric.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
@@ -132,7 +132,28 @@ public class waifuvaultTests
     }
 
     [Fact]
-    public async void TestBufferUpload() {
+    public async Task TestFileUploadError() {
+        // Given
+        badRequest.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(badRequest.Object);
+        var upload = new Waifuvault.FileUpload("test.png",expires:"10m");
+        
+        // When
+        Exception expected = null;
+        try {
+            var response = await Waifuvault.Api.uploadFile(upload);
+        }
+        catch(Exception ex) {
+            expected = ex;
+        }
+
+        // Then
+        Assert.NotNull(expected);
+        Assert.IsType<Exception>(expected);
+    }
+
+    [Fact]
+    public async Task TestBufferUpload() {
         // Given
         okResponseNumeric.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
@@ -153,7 +174,7 @@ public class waifuvaultTests
     }
     
     [Fact]
-    public async void TestFileInfo() {
+    public async Task TestFileInfo() {
         // Given
         okResponseHuman.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseHuman.Object);
@@ -172,7 +193,27 @@ public class waifuvaultTests
     }
 
     [Fact]
-    public async void TestUpdateInfo() {
+    public async Task TestFileInfoError() {
+        // Given
+        badRequest.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(badRequest.Object);
+        
+        // When
+        Exception expected = null;
+        try {
+            var response = await Waifuvault.Api.fileInfo("test-token",true);
+        }
+        catch(Exception ex) {
+            expected = ex;
+        }
+
+        // Then
+        Assert.NotNull(expected);
+        Assert.IsType<Exception>(expected);
+    }
+
+    [Fact]
+    public async Task TestUpdateInfo() {
         // Given
         okResponseNumericProtected.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumericProtected.Object);
@@ -191,7 +232,27 @@ public class waifuvaultTests
     }
 
     [Fact]
-    public async void TestDelete() {
+    public async Task TestUpdateInfoError() {
+        // Given
+        badRequest.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(badRequest.Object);
+        
+        // When
+        Exception expected = null;
+        try {
+            var response = await Waifuvault.Api.fileUpdate("test-token","dangerWaifu");
+        }
+        catch(Exception ex) {
+            expected = ex;
+        }
+
+        // Then
+        Assert.NotNull(expected);
+        Assert.IsType<Exception>(expected);
+    }
+
+    [Fact]
+    public async Task TestDelete() {
         // Given
         deleteTrue.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(deleteTrue.Object);
@@ -207,7 +268,27 @@ public class waifuvaultTests
     }
 
     [Fact]
-    public async void TestDownload() {
+    public async Task TestDeleteError() {
+        // Given
+        badRequest.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(badRequest.Object);
+        
+        // When
+        Exception expected = null;
+        try {
+            var ret = await Waifuvault.Api.deleteFile("test-token");
+        }
+        catch(Exception ex) {
+            expected = ex;
+        }
+
+        // Then
+        Assert.NotNull(expected);
+        Assert.IsType<Exception>(expected);
+    }
+
+    [Fact]
+    public async Task TestDownload() {
         // Given
         fileReturn.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(fileReturn.Object);
