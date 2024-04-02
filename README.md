@@ -40,6 +40,7 @@ To Upload a file, use the `uploadFile` function. This function takes the followi
 | `hideFilename` | `boolean`    | If true, then the uploaded filename won't appear in the URL | false          | Defaults to `false`              |
 | `password`     | `string`     | If set, then the uploaded file will be encrypted            | false          |                                  |
 | `ct`           | `canceltoken`| An optional cancellation token that can be passed in        | false          | Standard cancellation token      |
+| `oneTimeDownload` | `boolean`          | if supplied, the file will be deleted as soon as it is accessed | false          |                                  |
 
 Using a URL:
 

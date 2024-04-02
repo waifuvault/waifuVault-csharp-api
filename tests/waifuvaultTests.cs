@@ -26,7 +26,7 @@ public class waifuvaultTests
             )
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"protected\":false, \"retentionPeriod\":100}")
+                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"retentionPeriod\":100, \"options\":{\"protected\":false, \"hideFilename\":false, \"oneTimeDownload\":false}}")
             })
             .Verifiable();
 
@@ -38,7 +38,7 @@ public class waifuvaultTests
             )
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"protected\":true, \"retentionPeriod\":100}")
+                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"retentionPeriod\":100, \"options\":{\"protected\":true, \"hideFilename\":false, \"oneTimeDownload\":false}}")
             })
             .Verifiable();
 
@@ -50,7 +50,7 @@ public class waifuvaultTests
             )
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"protected\":false, \"retentionPeriod\":\"10 minutes\"}")
+                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"retentionPeriod\":\"10 minutes\", \"options\":{\"protected\":false, \"hideFilename\":false, \"oneTimeDownload\":false}}")
             })
             .Verifiable();
 
@@ -107,7 +107,7 @@ public class waifuvaultTests
             ItExpr.IsAny<CancellationToken>());
         Assert.Equal("https://waifuvault.moe/f/something",response.url);
         Assert.Equal("test-token", response.token);
-        Assert.Equal(false,response.fileprotected);
+        Assert.Equal(false,response.options.fileprotected);
         Assert.Equal("100", response.retentionPeriod);
     }
 
@@ -127,7 +127,7 @@ public class waifuvaultTests
             ItExpr.IsAny<CancellationToken>());
         Assert.Equal("https://waifuvault.moe/f/something",response.url);
         Assert.Equal("test-token", response.token);
-        Assert.Equal(false,response.fileprotected);
+        Assert.Equal(false,response.options.fileprotected);
         Assert.Equal("100", response.retentionPeriod);
     }
 
@@ -169,7 +169,7 @@ public class waifuvaultTests
             ItExpr.IsAny<CancellationToken>());
         Assert.Equal("https://waifuvault.moe/f/something",response.url);
         Assert.Equal("test-token", response.token);
-        Assert.Equal(false,response.fileprotected);
+        Assert.Equal(false,response.options.fileprotected);
         Assert.Equal("100", response.retentionPeriod);
     }
     
@@ -188,7 +188,7 @@ public class waifuvaultTests
             ItExpr.IsAny<CancellationToken>());
         Assert.Equal("https://waifuvault.moe/f/something",response.url);
         Assert.Equal("test-token", response.token);
-        Assert.Equal(false,response.fileprotected);
+        Assert.Equal(false,response.options.fileprotected);
         Assert.Equal("10 minutes", response.retentionPeriod);
     }
 
@@ -227,7 +227,7 @@ public class waifuvaultTests
             ItExpr.IsAny<CancellationToken>());
         Assert.Equal("https://waifuvault.moe/f/something",response.url);
         Assert.Equal("test-token", response.token);
-        Assert.Equal(true,response.fileprotected);
+        Assert.Equal(true,response.options.fileprotected);
         Assert.Equal("100", response.retentionPeriod);
     }
 
