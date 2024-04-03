@@ -63,6 +63,12 @@ public class FileOptions
     [JsonPropertyName("protected")]
     public bool? fileprotected { get; set; }
 
+    public FileOptions(bool? hideFilename = false, bool? oneTimeDownload = false, bool? fileprotected = false) {
+        this.hideFilename = hideFilename;
+        this.oneTimeDownload = oneTimeDownload;
+        this.fileprotected = fileprotected;
+    }
+
 }
 
 public class FileResponse

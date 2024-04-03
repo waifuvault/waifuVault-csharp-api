@@ -304,4 +304,14 @@ public class waifuvaultTests
             ItExpr.IsAny<CancellationToken>());
         Assert.True(response.GetType() == typeof(byte[]));
     }
+
+    [Fact]
+    public void TestBuildArgs() {
+        var fileupload = new Waifuvault.FileUpload("https://waifuvault.moe/test", expires: "1d", password: "testpassword", hidefilename: true, oneTimeDownload:true);
+        var args = fileupload.buildURL("https://waifuvault.moe/rest");
+        Assert.Contains("password=testpassword", args);
+        Assert.Contains("expires=1d", args);
+        Assert.Contains("hide_filename=true", args);
+        Assert.Contains("one_time_download=true", args);
+    }
 }
