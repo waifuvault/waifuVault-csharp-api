@@ -1,6 +1,8 @@
 # waifuvault-C#-api
 
 ![tests](https://github.com/waifuvault/waifuVault-csharp-api/actions/workflows/dotnet.yml/badge.svg)
+[![GitHub issues](https://img.shields.io/github/issues/waifuvault/waifuVault-csharp-api.png)](https://github.com/waifuvault/waifuVault-csharp-api/issues)
+[![last-commit](https://img.shields.io/github/last-commit/waifuvault/waifuVault-csharp-api)](https://github.com/waifuvault/waifuVault-csharp-api/commits/master)
 
 This contains the official API bindings for uploading, deleting and obtaining files
 with [waifuvault.moe](https://waifuvault.moe/). Contains a full up to date API for interacting with the service
