@@ -23,7 +23,7 @@ public class Api
         else if(!String.IsNullOrEmpty(fileObj.filename) && fileObj.buffer == null) {
             // File Upload
             var content = new MultipartFormDataContent();
-            using(var fileStream = new FileStream(ExpandHomedir(fileObj.filename), FileMode.Open)) {
+            using(var fileStream = new FileStream(fileObj.filename, FileMode.Open)) {
                 content.Add(new StreamContent(fileStream), "file", Path.GetFileName(fileObj.filename));
                 retval = await sendContent(targetUrl, content, ct);
             }
@@ -124,15 +124,5 @@ public class Api
             }
             throw new Exception($"Error {response.StatusCode.ToString()} ({error.name}:{error.message})");
         }
-    }
-    
-    private static string ExpandHomedir(string path)
-    {
-        if (path.StartsWith("~"))
-        {
-            string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            path = Path.Combine(home, path.TrimStart('~').TrimStart('/', '\\'));
-        }
-        return path;
     }
 }
