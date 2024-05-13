@@ -40,9 +40,6 @@ public class FileUpload
 
     public string buildURL(string baseURL) {
         var urlBuilder = new List<String>();
-        if(!String.IsNullOrEmpty(this.password)) {
-            urlBuilder.Add($"password={this.password}");
-        }
         if(!String.IsNullOrEmpty(this.expires)) {
             urlBuilder.Add($"expires={this.expires}");
         }

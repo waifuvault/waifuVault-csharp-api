@@ -14,10 +14,17 @@ public class Api
 
         if (!String.IsNullOrEmpty(fileObj.url)) {
             // URL Upload
-            var urlContent = new FormUrlEncodedContent(new []
-                {
-                    new KeyValuePair<string,string>("url", fileObj.url)
-                });
+            List<KeyValuePair<string, string>> keyValuePairs = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("url", fileObj.url)
+            };
+
+            if (!String.IsNullOrEmpty(fileObj.password))
+            {
+                keyValuePairs.Add(new KeyValuePair<string, string>("password", fileObj.password));
+            }
+
+            var urlContent = new FormUrlEncodedContent(keyValuePairs);
             retval = await sendContent(targetUrl, urlContent, ct);
         }
         else if(!String.IsNullOrEmpty(fileObj.filename) && fileObj.buffer == null) {
@@ -25,6 +32,10 @@ public class Api
             var content = new MultipartFormDataContent();
             using(var fileStream = new FileStream(fileObj.filename, FileMode.Open)) {
                 content.Add(new StreamContent(fileStream), "file", Path.GetFileName(fileObj.filename));
+                if (!String.IsNullOrEmpty(fileObj.password))
+                {
+                    content.Add(new StringContent(fileObj.password), "password");
+                }
                 retval = await sendContent(targetUrl, content, ct);
             }
         }
@@ -33,6 +44,10 @@ public class Api
             var content = new MultipartFormDataContent();
             using(var memStream = new MemoryStream(fileObj.buffer)) {
                 content.Add(new StreamContent(memStream), "file", fileObj.filename);
+                if (!String.IsNullOrEmpty(fileObj.password))
+                {
+                    content.Add(new StringContent(fileObj.password), "password");
+                }
                 retval = await sendContent(targetUrl, content, ct);
             }
         }
