@@ -22,6 +22,9 @@ This API contains 5 interactions:
 3. Update File Info
 4. Delete File
 5. Get File
+6. Create Bucket
+7. Delete Bucket
+8. Get Bucket
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -33,16 +36,17 @@ using Waifuvault;
 
 To Upload a file, use the `uploadFile` function. This function takes the following options as an object:
 
-| Option         | Type         | Description                                                 | Required       | Extra info                       |
-|----------------|--------------|-------------------------------------------------------------|----------------|----------------------------------|
-| `filename`     | `string `    | The path to the file to upload                              | true if File   | File path                        |
-| `url`          | `string`     | The URL of the file to target                               | true if URL    | Filename with extension          |
-| `buffer`       | `byte array` | Byte array containing file to upload                        | true if buffer | Needs filename set also          |
-| `expires`      | `string`     | A string containing a number and a unit (1d = 1day)         | false          | Valid units are `m`, `h` and `d` |
-| `hideFilename` | `boolean`    | If true, then the uploaded filename won't appear in the URL | false          | Defaults to `false`              |
-| `password`     | `string`     | If set, then the uploaded file will be encrypted            | false          |                                  |
-| `ct`           | `canceltoken`| An optional cancellation token that can be passed in        | false          | Standard cancellation token      |
-| `oneTimeDownload` | `boolean`          | if supplied, the file will be deleted as soon as it is accessed | false          |                                  |
+| Option            | Type          | Description                                                     | Required       | Extra info                       |
+|-------------------|---------------|-----------------------------------------------------------------|----------------|----------------------------------|
+| `filename`        | `string `     | The path to the file to upload                                  | true if File   | File path                        |
+| `url`             | `string`      | The URL of the file to target                                   | true if URL    | Filename with extension          |
+| `buffer`          | `byte array`  | Byte array containing file to upload                            | true if buffer | Needs filename set also          |
+| `bucketToken`     | `string`      | Token for a bucket to upload the file into                      | false          | Create bucket gives token        |
+| `expires`         | `string`      | A string containing a number and a unit (1d = 1day)             | false          | Valid units are `m`, `h` and `d` |
+| `hideFilename`    | `boolean`     | If true, then the uploaded filename won't appear in the URL     | false          | Defaults to `false`              |
+| `password`        | `string`      | If set, then the uploaded file will be encrypted                | false          |                                  |
+| `ct`              | `canceltoken` | An optional cancellation token that can be passed in            | false          | Standard cancellation token      |
+| `oneTimeDownload` | `boolean`     | if supplied, the file will be deleted as soon as it is accessed | false          |                                  |
 
 Using a URL:
 
@@ -215,5 +219,60 @@ try {
     var cancelled = await Waifuvault.Api.getFile(file, cts.Token);
 } catch(OperationCanceledException) {
     Console.WriteLine("Canceled download");
+}
+```
+
+### Create Bucket
+
+Buckets are virtual collections that are linked to your IP and a token. When you create a bucket, you will receive a bucket token that you can use in Get Bucket to get all the files in that bucket
+
+> **NOTE:** Only one bucket is allowed per client IP address, if you call it more than once, it will return the same bucket token
+
+To create a bucket, use the `createBucket` function. This function does not take any arguments.
+
+```csharp
+using Waifuvault;
+var bucket = await Waifuvault.Api.createBucket();
+Console.WriteLine(bucket.token);
+```
+
+### Delete Bucket
+
+Deleting a bucket will delete the bucket and all the files it contains.
+
+> **IMPORTANT:**  All contained files will be **DELETED** along with the Bucket!
+
+To delete a bucket, you must call the `deleteBucket` function with the following options as parameters:
+
+| Option      | Type      | Description                       | Required | Extra info        |
+|-------------|-----------|-----------------------------------|----------|-------------------|
+| `token`     | `string`  | The token of the bucket to delete | true     |                   |
+
+> **NOTE:** `deleteBucket` will only ever either return `true` or throw an exception if the token is invalid
+
+```csharp
+using Waifuvault;
+var resp = await Waifuvault.Api.deleteBucket("some-bucket-token");
+Console.WriteLine(resp);
+```
+
+### Get Bucket
+
+To get the list of files contained in a bucket, you use the `getBucket` functions and supply the token.
+This function takes the following options as parameters:
+
+| Option      | Type      | Description             | Required | Extra info        |
+|-------------|-----------|-------------------------|----------|-------------------|
+| `token`     | `string`  | The token of the bucket | true     |                   |
+
+This will respond with the bucket and all the files the bucket contains.
+
+```csharp
+using Waifuvault;
+var bucket = await Waifuvault.Api.getBucket("some-bucket-token");
+Console.WriteLine(bucket.token);
+foreach(var file in bucket.files)
+{
+    Console.WriteLine(file.token);    
 }
 ```

@@ -12,6 +12,7 @@ public class waifuvaultTests
     public Mock<HttpMessageHandler> deleteTrue = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> badRequest = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> fileReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> bucketReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
 
     public waifuvaultTests() {
         setupMocks();
@@ -26,7 +27,7 @@ public class waifuvaultTests
             )
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"retentionPeriod\":100, \"options\":{\"protected\":false, \"hideFilename\":false, \"oneTimeDownload\":false}}")
+                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"bucket\":\"test-bucket\", \"retentionPeriod\":100, \"options\":{\"protected\":false, \"hideFilename\":false, \"oneTimeDownload\":false}}")
             })
             .Verifiable();
 
@@ -38,7 +39,7 @@ public class waifuvaultTests
             )
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"retentionPeriod\":100, \"options\":{\"protected\":true, \"hideFilename\":false, \"oneTimeDownload\":false}}")
+                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"bucket\":\"test-bucket\", \"retentionPeriod\":100, \"options\":{\"protected\":true, \"hideFilename\":false, \"oneTimeDownload\":false}}")
             })
             .Verifiable();
 
@@ -50,7 +51,7 @@ public class waifuvaultTests
             )
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"retentionPeriod\":\"10 minutes\", \"options\":{\"protected\":false, \"hideFilename\":false, \"oneTimeDownload\":false}}")
+                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"bucket\":\"test-bucket\", \"retentionPeriod\":\"10 minutes\", \"options\":{\"protected\":false, \"hideFilename\":false, \"oneTimeDownload\":false}}")
             })
             .Verifiable();
 
@@ -87,6 +88,18 @@ public class waifuvaultTests
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new ByteArrayContent(new byte[4] {0x00, 0x01, 0x01, 0x00})
+            })
+            .Verifiable();
+        
+        bucketReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("{\"token\":\"test-bucket\", \"files\":[]}")
             })
             .Verifiable();
     }
@@ -303,6 +316,57 @@ public class waifuvaultTests
                                             && req.Headers.Contains("x-password") ),
             ItExpr.IsAny<CancellationToken>());
         Assert.True(response.GetType() == typeof(byte[]));
+    }
+    
+    [Fact]
+    public async Task TestCreateBucket() {
+        // Given
+        bucketReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(bucketReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.createBucket();
+        
+        // Then
+        bucketReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get
+            && req.RequestUri.ToString().Contains("/bucket/create")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("test-bucket",response.token);
+    }
+    
+    [Fact]
+    public async Task TestGetBucket() {
+        // Given
+        bucketReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(bucketReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.getBucket("test-bucket");
+        
+        // Then
+        bucketReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post
+                                                 && req.RequestUri.ToString().Contains("/bucket/get")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("test-bucket",response.token);
+    }
+    
+    [Fact]
+    public async Task TestDeleteBucket() {
+        // Given
+        deleteTrue.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(deleteTrue.Object);
+        
+        // When
+        var response = await Waifuvault.Api.deleteBucket("test-bucket");
+        
+        // Then
+        deleteTrue.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Delete
+                                                 && req.RequestUri.ToString().Contains("/bucket/test-bucket")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.True(response);
     }
 
     [Fact]

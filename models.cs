@@ -8,12 +8,13 @@ public class FileUpload
     public string? filename { get; set; }
     public string? url { get; set; }
     public byte[]? buffer { get; set; }
+    public string? bucketToken { get; set; }
     public string? expires { get; set; }
     public string? password { get; set; }
     public bool? hidefilename { get; set; }
     public bool? oneTimeDownload { get; set; }
 
-    public FileUpload(string target, string? expires = null, string? password = null, bool? hidefilename = null, bool? oneTimeDownload = null) {
+    public FileUpload(string target, string? bucket = null, string? expires = null, string? password = null, bool? hidefilename = null, bool? oneTimeDownload = null) {
         if(target.ToLower().StartsWith("http://") || target.ToLower().StartsWith("https://"))
         {
             this.url = target;
@@ -23,15 +24,17 @@ public class FileUpload
             this.filename = target;
         }
         this.buffer = null;
+        this.bucketToken = bucket;
         this.expires = expires;
         this.password = password;
         this.hidefilename = hidefilename;
         this.oneTimeDownload = oneTimeDownload;
     }
 
-    public FileUpload(byte[] buffer, string filename, string? expires = null, string? password = null, bool? hidefilename = null, bool? oneTimeDownload = null) {
+    public FileUpload(byte[] buffer, string filename, string? bucket = null, string? expires = null, string? password = null, bool? hidefilename = null, bool? oneTimeDownload = null) {
         this.buffer = buffer;
         this.filename = filename;
+        this.bucketToken = bucket;
         this.expires = expires;
         this.password = password;
         this.hidefilename = hidefilename;
@@ -72,16 +75,30 @@ public class FileResponse
 {
     public string? token { get; set; }
     public string? url { get; set; }
+    public string? bucket { get; set; }
     
     [JsonConverter(typeof(StringConverter))]
     public string? retentionPeriod { get; set; }
     public FileOptions? options { get; set; }
 
-    public FileResponse(string? token = null, string? url = null, string? retentionPeriod = null, FileOptions? options = null) {
+    public FileResponse(string? token = null, string? url = null, string? bucket = null, string? retentionPeriod = null, FileOptions? options = null) {
         this.token = token;
         this.url = url;
+        this.bucket = bucket;
         this.retentionPeriod = retentionPeriod;
         this.options = options;
+    }
+}
+
+public class BucketResponse
+{
+    public string? token { get; set; }
+    public List<FileResponse> files { get; set; }
+
+    public BucketResponse(string? token = null)
+    {
+        this.token = token;
+        files = new List<FileResponse>();
     }
 }
 
