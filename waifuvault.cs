@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace Waifuvault;
@@ -8,9 +9,43 @@ public class Api
     public const string baseURL = "https://waifuvault.moe/rest";
     public static HttpClient? customHttpClient;
 
+    public static async Task<BucketResponse> createBucket()
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/bucket/create";
+        var createResponse = await client.GetAsync(url,ct != null ? ct.Value : cts.Token);
+        await checkError(createResponse,false);
+        var createResponseData = await createResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<BucketResponse>(createResponseData) ?? new BucketResponse();
+    }
+
+    public static async Task<bool> deleteBucket(string token, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/bucket/{token}";
+        var urlResponse = await client.DeleteAsync(url,ct != null ? ct.Value : cts.Token);
+        await checkError(urlResponse,false);
+        var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
+        return urlResponseData == "true"; 
+    }
+    
+    public static async Task<BucketResponse> getBucket(string token, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/bucket/get";
+        var data = new { bucket_token = token };
+        var getResponse = await client.PostAsJsonAsync(url, data, ct != null ? ct.Value : cts.Token);
+        await checkError(getResponse,false);
+        var getResponseData = await getResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<BucketResponse>(getResponseData) ?? new BucketResponse();
+    }
+
     public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
         var retval = new FileResponse();
-        var targetUrl = fileObj.buildURL(baseURL);
+        var targetUrl = fileObj.buildURL(String.IsNullOrEmpty(fileObj.bucketToken) ? baseURL : baseURL + $"/{fileObj.bucketToken}");
 
         if (!String.IsNullOrEmpty(fileObj.url)) {
             // URL Upload
