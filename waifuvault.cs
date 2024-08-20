@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 
 namespace Waifuvault;
@@ -37,7 +37,9 @@ public class Api
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/bucket/get";
         var data = new { bucket_token = token };
-        var getResponse = await client.PostAsJsonAsync(url, data, ct != null ? ct.Value : cts.Token);
+        var jsonData = JsonSerializer.Serialize(data);
+        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var getResponse = await client.PostAsync(url, content, ct != null ? ct.Value : cts.Token);
         await checkError(getResponse,false);
         var getResponseData = await getResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<BucketResponse>(getResponseData) ?? new BucketResponse();
