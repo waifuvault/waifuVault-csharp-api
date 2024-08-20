@@ -14,7 +14,7 @@ public class Api
         var client = customHttpClient ?? new HttpClient();
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/bucket/create";
-        var createResponse = await client.GetAsync(url,ct != null ? ct.Value : cts.Token);
+        var createResponse = await client.GetAsync(url);
         await checkError(createResponse,false);
         var createResponseData = await createResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<BucketResponse>(createResponseData) ?? new BucketResponse();
