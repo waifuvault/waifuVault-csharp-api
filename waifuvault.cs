@@ -8,11 +8,29 @@ public class Api
 {
     public const string baseURL = "https://waifuvault.moe/rest";
     public static HttpClient? customHttpClient;
+    public static RestrictionResponse? restrictions;
 
+    public static async Task<RestrictionResponse> getRestrictions()
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var url = $"{baseURL}/resources/restrictions";
+        var getRestrictionsResponse = await client.GetAsync(url);
+        await checkError(getRestrictionsResponse,false);
+        var getRestrictionsResponseData = await getRestrictionsResponse.Content.ReadAsStringAsync();
+        var restrictionList = JsonSerializer.Deserialize<List<Restriction>>(getRestrictionsResponseData) ??
+                              new List<Restriction>();
+        restrictions = new RestrictionResponse(restrictionList);
+        return restrictions;
+    }
+
+    public static void clearRestrictions()
+    {
+        restrictions = null;
+    }
+    
     public static async Task<BucketResponse> createBucket()
     {
         var client = customHttpClient ?? new HttpClient();
-        var cts = new CancellationTokenSource();
         var url = $"{baseURL}/bucket/create";
         var createResponse = await client.GetAsync(url);
         await checkError(createResponse,false);
@@ -47,6 +65,7 @@ public class Api
 
     public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
         var retval = new FileResponse();
+        await checkRestrictions(fileObj);
         var targetUrl = fileObj.buildURL(String.IsNullOrEmpty(fileObj.bucketToken) ? baseURL : baseURL + $"/{fileObj.bucketToken}");
 
         if (!String.IsNullOrEmpty(fileObj.url)) {
@@ -175,6 +194,27 @@ public class Api
                 throw new Exception("Password is incorrect");
             }
             throw new Exception($"Error {response.StatusCode.ToString()} ({error.name}:{error.message})");
+        }
+    }
+
+    private static async Task checkRestrictions(FileUpload fileObj)
+    {
+        if (restrictions == null)
+        {
+            await getRestrictions();
+        }
+
+        if (restrictions != null && restrictions.Expires < DateTime.Now)
+        {
+            await getRestrictions();
+        }
+
+        if (restrictions != null && restrictions.Restrictions != null)
+        {
+            foreach (var restriction in restrictions.Restrictions)
+            {
+                restriction.passes(fileObj);
+            }
         }
     }
 }

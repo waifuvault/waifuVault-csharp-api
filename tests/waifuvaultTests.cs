@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Moq;
 using Moq.Protected;
+using Waifuvault;
 
 namespace tests;
 
@@ -13,6 +15,11 @@ public class waifuvaultTests
     public Mock<HttpMessageHandler> badRequest = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> fileReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> bucketReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> restrictionsReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> restrictionsSmallReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+
+    public String restrictionsJson =
+        "[{\"type\": \"MAX_FILE_SIZE\",\"value\": 536870912},{\"type\": \"BANNED_MIME_TYPE\",\"value\": \"application/x-msdownload,application/x-executable\"}]";
 
     public waifuvaultTests() {
         setupMocks();
@@ -102,6 +109,26 @@ public class waifuvaultTests
                 Content = new StringContent("{\"token\":\"test-bucket\", \"files\":[]}")
             })
             .Verifiable();
+        
+        restrictionsSmallReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("[{\"type\": \"MAX_FILE_SIZE\",\"value\": 100},{\"type\": \"BANNED_MIME_TYPE\",\"value\": \"application/x-msdownload,application/x-executable\"}]")
+            })
+            .Verifiable();
+    }
+
+    private void setupRestrictions()
+    {
+        Waifuvault.Api.clearRestrictions();
+        var restrictionList = JsonSerializer.Deserialize<List<Restriction>>(restrictionsJson) ??
+                              new List<Restriction>();
+        Waifuvault.Api.restrictions = new RestrictionResponse(restrictionList);
     }
 
     [Fact]
@@ -109,6 +136,8 @@ public class waifuvaultTests
         // Given
         okResponseNumeric.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
+        Waifuvault.Api.clearRestrictions();
+        setupRestrictions();
         var upload = new Waifuvault.FileUpload("https://walker.moe/assets/sunflowers.png",expires:"10m");
         
         // When
@@ -129,6 +158,8 @@ public class waifuvaultTests
         // Given
         okResponseNumeric.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
+        Waifuvault.Api.clearRestrictions();
+        setupRestrictions();
         var upload = new Waifuvault.FileUpload("test.png",expires:"10m");
         
         // When
@@ -149,6 +180,32 @@ public class waifuvaultTests
         // Given
         badRequest.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(badRequest.Object);
+        Waifuvault.Api.clearRestrictions();
+        setupRestrictions();
+        var upload = new Waifuvault.FileUpload("test.png",expires:"10m");
+        
+        // When
+        Exception expected = null;
+        try {
+            var response = await Waifuvault.Api.uploadFile(upload);
+        }
+        catch(Exception ex) {
+            expected = ex;
+        }
+
+        // Then
+        Assert.NotNull(expected);
+        Assert.IsType<Exception>(expected);
+    }
+    
+    [Fact]
+    public async Task TestFileUploadRestrictionError() {
+        // Given
+        badRequest.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(badRequest.Object);
+        Waifuvault.Api.clearRestrictions();
+        setupRestrictions();
+        Waifuvault.Api.restrictions.Restrictions[0].value = "100";
         var upload = new Waifuvault.FileUpload("test.png",expires:"10m");
         
         // When
@@ -170,6 +227,8 @@ public class waifuvaultTests
         // Given
         okResponseNumeric.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
+        Waifuvault.Api.clearRestrictions();
+        setupRestrictions();
         byte[] buffer = File.ReadAllBytes("test.png");
         var upload = new Waifuvault.FileUpload(buffer,"test.png",expires:"10m");
         
@@ -367,6 +426,24 @@ public class waifuvaultTests
                                                  && req.RequestUri.ToString().Contains("/bucket/test-bucket")),
             ItExpr.IsAny<CancellationToken>());
         Assert.True(response);
+    }
+    
+    [Fact]
+    public async Task TestGetRestrictions() {
+        // Given
+        restrictionsSmallReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(restrictionsSmallReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.getRestrictions();
+        
+        // Then
+        restrictionsSmallReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get
+                                                 && req.RequestUri.ToString().Contains("/resources/restrictions")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal(2,response.Restrictions.Count);
+        Assert.Equal("100", response.Restrictions.Where(x => x.type == "MAX_FILE_SIZE").Select(x => x.value).First());
     }
 
     [Fact]
