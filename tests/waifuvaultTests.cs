@@ -13,6 +13,8 @@ public class waifuvaultTests
     public Mock<HttpMessageHandler> badRequest = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> fileReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> bucketReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> restrictionsReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> restrictionsSmallReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
 
     public waifuvaultTests() {
         setupMocks();
@@ -100,6 +102,30 @@ public class waifuvaultTests
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent("{\"token\":\"test-bucket\", \"files\":[]}")
+            })
+            .Verifiable();
+        
+        restrictionsReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("[{\"type\": \"MAX_FILE_SIZE\",\"value\": 536870912},{\"type\": \"BANNED_MIME_TYPE\",\"value\": \"application/x-msdownload,application/x-executable\"}]")
+            })
+            .Verifiable();
+        
+        restrictionsSmallReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("[{\"type\": \"MAX_FILE_SIZE\",\"value\": 100},{\"type\": \"BANNED_MIME_TYPE\",\"value\": \"application/x-msdownload,application/x-executable\"}]")
             })
             .Verifiable();
     }
