@@ -1,5 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Waifuvault.MimeTypes;
 
 namespace Waifuvault;
 
@@ -99,6 +102,73 @@ public class BucketResponse
     {
         this.token = token;
         files = new List<FileResponse>();
+    }
+}
+
+public class Restriction
+{
+    public string type { get; set; }
+    public string value { get; set; }
+
+    public Restriction(string type, string value)
+    {
+        this.type = type;
+        this.value = value;
+    }
+
+    public Restriction(string type, int value)
+    {
+        this.type = type;
+        this.value = value.ToString();
+    }
+
+    public void passes(FileUpload file)
+    {
+        if (!String.IsNullOrEmpty(file.url))
+        {
+            return;
+        }
+
+        switch (this.type)
+        {
+            case "MAX_FILE_SIZE":
+                if (file.buffer != null)
+                {
+                    if (file.buffer.Length > Convert.ToInt32(this.value))
+                    {
+                        throw (new ValidationException($"File size {file.buffer.Length.ToString()} is larger than max allowed {this.value}"));
+                    }
+                } else if (!String.IsNullOrEmpty(file.filename))
+                {
+                    FileInfo fileInfo = new FileInfo(file.filename);
+                    if (fileInfo.Length > Convert.ToInt64(this.value))
+                    {
+                        throw (new ValidationException($"File size {fileInfo.Length.ToString()} is larger than max allowed {this.value}"));
+                    }
+                }
+                return;
+            case "BANNED_MIME_TYPE":
+                var fileMime = MimeTypes.GetMimeType(file.filename ?? String.Empty);
+                if (this.value.Split(",").Contains(fileMime))
+                {
+                    throw (new ValidationException($"File MIME type {fileMime} is not allowed for upload"));
+                }
+                return;
+            default:
+                throw (new NotImplementedException($"Restriction type {this.type} is not implemented"));
+        }
+    }
+}
+
+public class RestrictionResponse
+{
+    public List<Restriction> Restrictions { get; set; }
+    public DateTime Expires { get; set; }
+
+    public RestrictionResponse(List<Restriction> restrictions)
+    {
+        this.Restrictions = restrictions;
+        this.Expires = DateTime.Now.AddMinutes(10);
     }
 }
 
