@@ -1,8 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Waifuvault.MimeTypes;
 
 namespace Waifuvault;
 
@@ -112,18 +110,6 @@ public class Restriction
     [JsonConverter(typeof(StringConverter))]
     public string value { get; set; }
 
-    public Restriction(string type, string value)
-    {
-        this.type = type;
-        this.value = value;
-    }
-
-    public Restriction(string type, int value)
-    {
-        this.type = type;
-        this.value = value.ToString();
-    }
-
     public void passes(FileUpload file)
     {
         if (!String.IsNullOrEmpty(file.url))
@@ -138,14 +124,14 @@ public class Restriction
                 {
                     if (file.buffer.Length > Convert.ToInt32(this.value))
                     {
-                        throw (new ValidationException($"File size {file.buffer.Length.ToString()} is larger than max allowed {this.value}"));
+                        throw (new Exception($"File size {file.buffer.Length.ToString()} is larger than max allowed {this.value}"));
                     }
                 } else if (!String.IsNullOrEmpty(file.filename))
                 {
                     FileInfo fileInfo = new FileInfo(file.filename);
                     if (fileInfo.Length > Convert.ToInt64(this.value))
                     {
-                        throw (new ValidationException($"File size {fileInfo.Length.ToString()} is larger than max allowed {this.value}"));
+                        throw (new Exception($"File size {fileInfo.Length.ToString()} is larger than max allowed {this.value}"));
                     }
                 }
                 return;
@@ -153,7 +139,7 @@ public class Restriction
                 var fileMime = MimeTypes.GetMimeType(file.filename ?? String.Empty);
                 if (this.value.Split(",").Contains(fileMime))
                 {
-                    throw (new ValidationException($"File MIME type {fileMime} is not allowed for upload"));
+                    throw (new Exception($"File MIME type {fileMime} is not allowed for upload"));
                 }
                 return;
             default:

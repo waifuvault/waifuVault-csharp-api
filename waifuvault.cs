@@ -8,7 +8,7 @@ public class Api
 {
     public const string baseURL = "https://waifuvault.moe/rest";
     public static HttpClient? customHttpClient;
-    private static RestrictionResponse? restrictions;
+    public static RestrictionResponse? restrictions;
 
     public static async Task<RestrictionResponse> getRestrictions()
     {
@@ -17,7 +17,9 @@ public class Api
         var getRestrictionsResponse = await client.GetAsync(url);
         await checkError(getRestrictionsResponse,false);
         var getRestrictionsResponseData = await getRestrictionsResponse.Content.ReadAsStringAsync();
-        restrictions = JsonSerializer.Deserialize<RestrictionResponse>(getRestrictionsResponseData) ?? new RestrictionResponse(new List<Restriction>());
+        var restrictionList = JsonSerializer.Deserialize<List<Restriction>>(getRestrictionsResponseData) ??
+                              new List<Restriction>();
+        restrictions = new RestrictionResponse(restrictionList);
         return restrictions;
     }
 
@@ -207,9 +209,12 @@ public class Api
             await getRestrictions();
         }
 
-        foreach (var restriction in restrictions.Restrictions)
+        if (restrictions != null && restrictions.Restrictions != null)
         {
-            restriction.passes(fileObj);
+            foreach (var restriction in restrictions.Restrictions)
+            {
+                restriction.passes(fileObj);
+            }
         }
     }
 }
