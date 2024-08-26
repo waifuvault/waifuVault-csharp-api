@@ -108,6 +108,8 @@ public class BucketResponse
 public class Restriction
 {
     public string type { get; set; }
+    
+    [JsonConverter(typeof(StringConverter))]
     public string value { get; set; }
 
     public Restriction(string type, string value)
