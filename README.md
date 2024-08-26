@@ -15,7 +15,7 @@ dotnet add package Waifuvault
 
 ## Usage
 
-This API contains 5 interactions:
+This API contains 10 interactions:
 
 1. Upload File
 2. Get File Info
@@ -25,6 +25,8 @@ This API contains 5 interactions:
 6. Create Bucket
 7. Delete Bucket
 8. Get Bucket
+9. Get Restrictions
+10. Clear Restrictions
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -47,6 +49,8 @@ To Upload a file, use the `uploadFile` function. This function takes the followi
 | `password`        | `string`      | If set, then the uploaded file will be encrypted                | false          |                                  |
 | `ct`              | `canceltoken` | An optional cancellation token that can be passed in            | false          | Standard cancellation token      |
 | `oneTimeDownload` | `boolean`     | if supplied, the file will be deleted as soon as it is accessed | false          |                                  |
+
+> **NOTE:** Server restrictions are checked by the SDK client side *before* upload, and will throw an exception if they are violated
 
 Using a URL:
 
@@ -277,4 +281,33 @@ foreach(var file in bucket.files)
 {
     Console.WriteLine(file.token);    
 }
+```
+
+### Get Restrictions
+
+To get the list of restrictions applied to the server, you use the `getRestrictions` functions.
+
+This will respond with an array of name, value entries describing the restrictions applied to the server.
+
+> **NOTE:** Restrictions are cached for 10 minutes
+
+```csharp
+using Waifuvault;
+var restrictions = await Waifuvault.Api.getRestrictions();
+
+foreach(var restriction in restrictions.Restrictions)
+{
+    Console.WriteLine($"{restriction.type} : {restriction.value}");    
+}
+```
+
+### Clear Restrictions
+
+To clear the cached restrictions in the SDK, you use the `clearRestrictions` function.
+
+This will remove the cached restrictions and a fresh copy will be downloaded at the next upload.
+
+```csharp
+using Waifuvault;
+Waifuvault.Api.clearRestrictions();
 ```
