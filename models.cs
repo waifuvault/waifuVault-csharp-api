@@ -173,7 +173,7 @@ public class StringConverter : JsonConverter<string>
     {
         if (reader.TokenType == JsonTokenType.Number)
         {
-            return reader.GetInt32().ToString();
+            return reader.GetInt64().ToString();
         }
         else if (reader.TokenType == JsonTokenType.String)
         {
