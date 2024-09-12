@@ -8,6 +8,7 @@ namespace tests;
 public class waifuvaultTests
 {
     // Mocks
+    public Mock<HttpMessageHandler> okResponseLargeNumeric = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> okResponseNumeric = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> okResponseNumericProtected = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> okResponseHuman = new Mock<HttpMessageHandler>(MockBehavior.Strict);
@@ -26,6 +27,18 @@ public class waifuvaultTests
     }
     
     private void setupMocks() {
+        okResponseLargeNumeric.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("{\"url\":\"https://waifuvault.moe/f/something\", \"token\":\"test-token\", \"bucket\":\"test-bucket\", \"retentionPeriod\":28860366525, \"options\":{\"protected\":false, \"hideFilename\":false, \"oneTimeDownload\":false}}")
+            })
+            .Verifiable();
+        
         okResponseNumeric.Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
@@ -262,6 +275,25 @@ public class waifuvaultTests
         Assert.Equal("test-token", response.token);
         Assert.Equal(false,response.options.fileprotected);
         Assert.Equal("10 minutes", response.retentionPeriod);
+    }
+    
+    [Fact]
+    public async Task TestFileInfoNumeric() {
+        // Given
+        okResponseLargeNumeric.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(okResponseLargeNumeric.Object);
+        
+        // When
+        var response = await Waifuvault.Api.fileInfo("test-token",true);
+        
+        // Then
+        okResponseLargeNumeric.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("https://waifuvault.moe/f/something",response.url);
+        Assert.Equal("test-token", response.token);
+        Assert.Equal(false,response.options.fileprotected);
+        Assert.Equal("28860366525", response.retentionPeriod);
     }
 
     [Fact]
