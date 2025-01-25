@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -72,6 +73,24 @@ public class FileOptions
 
 }
 
+public class AlbumInfoResponse
+{
+    public string token { get; set; }
+    public string? publicToken { get; set; }
+    public string? name { get; set; }
+    public string? bucket { get; set; }
+    public long dateCreated { get; set; }
+
+    public AlbumInfoResponse(string token, long dateCreated, string? publicToken = null, string? name = null, string? bucket = null,)
+    {
+        this.token = token;
+        this.dateCreated = dateCreated;
+        this.publicToken = publicToken;
+        this.name = name;
+        this.bucket = bucket;
+    }
+}
+
 public class FileResponse
 {
     public string? token { get; set; }
@@ -80,14 +99,38 @@ public class FileResponse
     
     [JsonConverter(typeof(StringConverter))]
     public string? retentionPeriod { get; set; }
+    public int? views { get; set; }
+    
+    public AlbumInfoResponse? album { get; set; }
     public FileOptions? options { get; set; }
 
-    public FileResponse(string? token = null, string? url = null, string? bucket = null, string? retentionPeriod = null, FileOptions? options = null) {
+    public FileResponse(string? token = null, string? url = null, string? bucket = null, int? views = null, string? retentionPeriod = null, AlbumInfoResponse? album = null, FileOptions? options = null) {
         this.token = token;
         this.url = url;
         this.bucket = bucket;
+        this.views = views;
         this.retentionPeriod = retentionPeriod;
+        this.album = album;
         this.options = options;
+    }
+}
+
+public class AlbumResponse
+{
+    public string? token { get; set; }
+    public string? bucketToken { get; set; }
+    public string? publicToken { get; set; }
+    public string? name { get; set; }
+    public List<FileResponse>? files { get; set; }
+
+    public AlbumResponse(string? token = null, string? bucketToken = null, string? publicToken = null,
+        string? name = null, List<FileResponse>? files = null)
+    {
+        this.token = token;
+        this.bucketToken = bucketToken;
+        this.publicToken = publicToken;
+        this.name = name;
+        this.files = files;
     }
 }
 
@@ -95,11 +138,13 @@ public class BucketResponse
 {
     public string? token { get; set; }
     public List<FileResponse> files { get; set; }
+    public List<AlbumInfoResponse> albums { get; set; }
 
     public BucketResponse(string? token = null)
     {
         this.token = token;
         files = new List<FileResponse>();
+        albums = new List<AlbumInfoResponse>();
     }
 }
 
@@ -157,6 +202,18 @@ public class RestrictionResponse
     {
         this.Restrictions = restrictions;
         this.Expires = DateTime.Now.AddMinutes(10);
+    }
+}
+
+public class FilesInfoResponse
+{
+    public int recordCount { get; set; }
+    public int recordSize { get; set; }
+
+    public FilesInfoResponse(int recordCount, int recordSize)
+    {
+        this.recordCount = recordCount;
+        this.recordSize = recordSize;
     }
 }
 
