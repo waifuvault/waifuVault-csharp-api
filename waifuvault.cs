@@ -27,6 +27,18 @@ public class Api
     {
         restrictions = null;
     }
+
+    public static async Task<FilesInfoResponse> getFileStats()
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var url = $"{baseURL}/resources/stats/files";
+        var getFilesResponse = await client.GetAsync(url);
+        await checkError(getFilesResponse,false);
+        var getFilesResponseData = await getFilesResponse.Content.ReadAsStringAsync();
+        var statsObj = JsonSerializer.Deserialize<FilesInfoResponse>(getFilesResponseData) ??
+                       new FilesInfoResponse(0, 0);
+        return statsObj;
+    }
     
     public static async Task<BucketResponse> createBucket()
     {
@@ -61,6 +73,97 @@ public class Api
         await checkError(getResponse,false);
         var getResponseData = await getResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<BucketResponse>(getResponseData) ?? new BucketResponse();
+    }
+
+    public static async Task<AlbumResponse> createAlbum(string bucketToken, string name, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/album/{bucketToken}";
+        var data = new { name = name };
+        var jsonData = JsonSerializer.Serialize(data);
+        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var getResponse = await client.PostAsync(url, content, ct != null ? ct.Value : cts.Token);
+        await checkError(getResponse,false);
+        var getResponseData = await getResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<AlbumResponse>(getResponseData) ?? new AlbumResponse();
+    }
+
+    public static async Task<bool> deleteAlbum(string albumToken, bool deleteFiles, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/album/{albumToken}?deleteFiles={deleteFiles.ToString()}";
+        var urlResponse = await client.DeleteAsync(url,ct != null ? ct.Value : cts.Token);
+        await checkError(urlResponse,false);
+        var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
+        var deleteObj = JsonSerializer.Deserialize<GeneralResponse>(urlResponseData);
+        return deleteObj != null ? deleteObj.success : false;
+    }
+
+    public static async Task<AlbumResponse> getAlbum(string token, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/album/{token}";
+        var getAlbumResponse = await client.GetAsync(url, ct != null ? ct.Value : cts.Token);
+        await checkError(getAlbumResponse,false);
+        var getAlbumResponseData = await getAlbumResponse.Content.ReadAsStringAsync();
+        var albumObj = JsonSerializer.Deserialize<AlbumResponse>(getAlbumResponseData) ??
+                       new AlbumResponse();
+        return albumObj;
+    }
+
+    public static async Task<AlbumResponse> associateFile(string token, List<string> fileTokens, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/album/{token}/associate";
+        var data = new { fileTokens = fileTokens };
+        var jsonData = JsonSerializer.Serialize(data);
+        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var getResponse = await client.PostAsync(url, content, ct != null ? ct.Value : cts.Token);
+        await checkError(getResponse,false);
+        var getResponseData = await getResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<AlbumResponse>(getResponseData) ?? new AlbumResponse();
+    }
+    
+    public static async Task<AlbumResponse> disassociateFile(string token, List<string> fileTokens, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/album/{token}/disassociate";
+        var data = new { fileTokens = fileTokens };
+        var jsonData = JsonSerializer.Serialize(data);
+        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var getResponse = await client.PostAsync(url, content, ct != null ? ct.Value : cts.Token);
+        await checkError(getResponse,false);
+        var getResponseData = await getResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<AlbumResponse>(getResponseData) ?? new AlbumResponse();
+    }
+
+    public static async Task<string> shareAlbum(string token, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/album/share/{token}";
+        var getResponse = await client.GetAsync(url, ct != null ? ct.Value : cts.Token);
+        await checkError(getResponse,false);
+        var getResponseData = await getResponse.Content.ReadAsStringAsync();
+        var resp = JsonSerializer.Deserialize<GeneralResponse>(getResponseData);
+        return resp != null ? resp.description : "";
+    }
+
+    public static async Task<bool> revokeAlbum(string token, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/album/revoke/{token}";
+        var getResponse = await client.GetAsync(url, ct != null ? ct.Value : cts.Token);
+        await checkError(getResponse,false);
+        var getResponseData = await getResponse.Content.ReadAsStringAsync();
+        var resp = JsonSerializer.Deserialize<GeneralResponse>(getResponseData);
+        return resp != null ? resp.success : false;
     }
 
     public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {

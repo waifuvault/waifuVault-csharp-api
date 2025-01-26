@@ -224,6 +224,12 @@ public class ErrorResponse
     public string message { get; set; }
 }
 
+public class GeneralResponse
+{
+    public bool success { get; set; }
+    public string description { get; set; }
+}
+
 public class StringConverter : JsonConverter<string>
 {
     public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
