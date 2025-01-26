@@ -81,7 +81,7 @@ public class AlbumInfoResponse
     public string? bucket { get; set; }
     public long dateCreated { get; set; }
 
-    public AlbumInfoResponse(string token, long dateCreated, string? publicToken = null, string? name = null, string? bucket = null,)
+    public AlbumInfoResponse(string token, long dateCreated, string? publicToken = null, string? name = null, string? bucket = null)
     {
         this.token = token;
         this.dateCreated = dateCreated;
