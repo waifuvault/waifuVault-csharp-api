@@ -93,7 +93,7 @@ public class Api
     {
         var client = customHttpClient ?? new HttpClient();
         var cts = new CancellationTokenSource();
-        var url = $"{baseURL}/album/{albumToken}?deleteFiles={deleteFiles.ToString()}";
+        var url = $"{baseURL}/album/{albumToken}?deleteFiles={deleteFiles.ToString().ToLower()}";
         var urlResponse = await client.DeleteAsync(url,ct != null ? ct.Value : cts.Token);
         await checkError(urlResponse,false);
         var urlResponseData = await urlResponse.Content.ReadAsStringAsync();
