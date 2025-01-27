@@ -15,7 +15,7 @@ dotnet add package Waifuvault
 
 ## Usage
 
-This API contains 10 interactions:
+This API contains 18 interactions:
 
 1. Upload File
 2. Get File Info
@@ -25,8 +25,16 @@ This API contains 10 interactions:
 6. Create Bucket
 7. Delete Bucket
 8. Get Bucket
-9. Get Restrictions
-10. Clear Restrictions
+9. Create Album
+10. Delete Album
+11. Get Album
+12. Associate File
+13. Disassociate File
+14. Share Album
+15. Revoke Album 
+16. Get Restrictions 
+17. Clear Restrictions
+18. Get File Stats
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -239,6 +247,7 @@ To create a bucket, use the `createBucket` function. This function does not take
 ```csharp
 using Waifuvault;
 var bucket = await Waifuvault.Api.createBucket();
+
 Console.WriteLine(bucket.token);
 ```
 
@@ -259,6 +268,7 @@ To delete a bucket, you must call the `deleteBucket` function with the following
 ```csharp
 using Waifuvault;
 var resp = await Waifuvault.Api.deleteBucket("some-bucket-token");
+
 Console.WriteLine(resp);
 ```
 
@@ -276,12 +286,170 @@ This will respond with the bucket and all the files the bucket contains.
 ```csharp
 using Waifuvault;
 var bucket = await Waifuvault.Api.getBucket("some-bucket-token");
+
 Console.WriteLine(bucket.token);
 foreach(var file in bucket.files)
 {
     Console.WriteLine(file.token);    
 }
 ```
+
+### Create Album
+Albums are shareable collections of files that exist within a bucket.
+
+To create an album, you use the `createAlbum` function and supply a bucket token and name.
+
+The function takes the following parameters:
+
+| Option        | Type      | Description                         | Required | Extra info        |
+|---------------|-----------|-------------------------------------|----------|-------------------|
+| `bucketToken` | `string`  | The token of the bucket             | true     |                   |
+| `name`        | `string`  | The name of the album to be created | true     |                   |
+
+This will respond with an album object containing the name and token of the album.
+
+```csharp
+using Waifuvault;
+var album = await Waifuvault.Api.createAlbum("some-bucket-token", "album-name");
+
+Console.WriteLine(album.token);
+Console.WriteLine(album.name);
+Console.WriteLine(album.files);  // Array of file objects
+```
+
+### Delete Album
+To delete an album, you use the `deleteAlbum` function and supply the album token and a boolean indication of whether
+or not the files contained in the album should be deleted or not.  If you chose false, the files will be returned to the
+bucket.
+
+The function takes the following parameters:
+
+| Option        | Type     | Description                         | Required | Extra info        |
+|---------------|----------|-------------------------------------|----------|-------------------|
+| `albumToken`  | `string` | The private token of the album      | true     |                   |
+| `deleteFiles` | `bool`   | Whether the files should be deleted | true     |                   |
+
+> **NOTE:** If `deleteFiles` is set to true, the files will be permanently deleted
+
+This will respond with a boolean indicating success.
+
+```csharp
+using Waifuvault;
+var resp = await Waifuvault.Api.deleteAlbum("some-album-token", false);
+
+Console.WriteLine(resp);
+```
+
+### Get Album
+To get the contents of an album, you use the `getAlbum` function and supply the album token.  The token can be either the private token
+or the public token.
+
+The function takes the following parameters:
+
+| Option   | Type     | Description            | Required | Extra info                     |
+|----------|----------|------------------------|----------|--------------------------------|
+| `token`  | `string` | The token of the album | true     | Can be private or public token |
+
+This will respond with the album object containing the album information and files contained within the album.
+
+```csharp
+using Waifuvault;
+var album = await Waifuvault.Api.getAlbum("some-album-token");
+
+Console.WriteLine(album.token);
+Console.WriteLine(album.bucketToken);
+Console.WriteLine(album.publicToken);
+Console.WriteLine(album.name);
+Console.WriteLine(album.files);  // Array of file objects
+```
+
+### Associate File
+To add files to an album, you use the `associateFile` function and supply the private album token and
+a list of file tokens.
+
+The function takes the following parameters:
+
+| Option  | Type           | Description                         | Required | Extra info |
+|---------|----------------|-------------------------------------|----------|------------|
+| `token` | `string`       | The private token of the album      | true     |            |
+| `files` | `list[string]` | List of file tokens to add to album | true     |            |
+
+This will respond with the new album object containing the added files.
+
+```csharp
+using Waifuvault;
+var files = new List<string>() { "file-token-1", "file-token-2" };
+var album = await Waifuvault.Api.associateFile("some-album-token", files);
+
+Console.WriteLine(album.token);
+Console.WriteLine(album.name);
+Console.WriteLine(album.files);  // Array of file objects
+```
+
+### Disassociate File
+To remove files from an album, you use the `disassociateFile` function and supply the private album token and
+a list of file tokens.
+
+The function takes the following parameters:
+
+| Option  | Type           | Description                         | Required | Extra info |
+|---------|----------------|-------------------------------------|----------|------------|
+| `token` | `string`       | The private token of the album      | true     |            |
+| `files` | `list[string]` | List of file tokens to add to album | true     |            |
+
+This will respond with the new album object with the files removed.
+
+```csharp
+using Waifuvault;
+var files = new List<string>() { "file-token-1", "file-token-2" };
+var album = await Waifuvault.Api.disassociateFile("some-album-token", files);
+
+Console.WriteLine(album.token);
+Console.WriteLine(album.name);
+Console.WriteLine(album.files);  // Array of file objects
+```
+
+### Share Album
+To share an album, so it contents can be accessed from a public URL, you use the `shareAlbum` function and
+supply the private token.
+
+The function takes the following parameters:
+
+| Option  | Type           | Description                         | Required | Extra info |
+|---------|----------------|-------------------------------------|----------|------------|
+| `token` | `string`       | The private token of the album      | true     |            |
+
+This will respond with the public URL with which the album can be found.
+
+```csharp
+using Waifuvault;
+var url = await Waifuvault.Api.shareAlbum("some-album-token");
+
+Console.WriteLine(url);
+```
+
+> **NOTE:** The public album token can now be found in the `getAlbum` results
+
+### Revoke Album
+To revoke the sharing of an album, so it will no longer be accessible publicly, you use the `revokeAlbum` function
+and supply the private token.
+
+The function takes the following parameters:
+
+| Option  | Type           | Description                         | Required | Extra info |
+|---------|----------------|-------------------------------------|----------|------------|
+| `token` | `string`       | The private token of the album      | true     |            |
+
+This will respond with a boolean True if the album was revoked.
+
+```csharp
+using Waifuvault;
+var resp = await Waifuvault.Api.revokeAlbum("some-album-token");
+
+Console.WriteLine(resp);
+```
+
+> **NOTE:** Once revoked, the URL for sharing is destroyed.  If the album is later shared again, the URL issued will be different.
 
 ### Get Restrictions
 
@@ -310,4 +478,18 @@ This will remove the cached restrictions and a fresh copy will be downloaded at 
 ```csharp
 using Waifuvault;
 Waifuvault.Api.clearRestrictions();
+```
+
+### Get File Stats
+
+To get general file stats for the server, you use the `getFileStats` function.
+
+This takes no parameters and returns the number of files and the size of files on the server.
+
+```csharp
+using Waifuvault;
+var stats = Waifuvault.Api.clearRestrictions();
+
+console.WriteLine(stats.recordCount);
+console.WriteLine(stats.recordSize);
 ```

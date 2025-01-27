@@ -18,6 +18,10 @@ public class waifuvaultTests
     public Mock<HttpMessageHandler> bucketReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> restrictionsReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
     public Mock<HttpMessageHandler> restrictionsSmallReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> fileStatsReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> albumNewReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> albumWithFilesReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    public Mock<HttpMessageHandler> generalTrueReturn = new Mock<HttpMessageHandler>(MockBehavior.Strict);
 
     public String restrictionsJson =
         "[{\"type\": \"MAX_FILE_SIZE\",\"value\": 536870912},{\"type\": \"BANNED_MIME_TYPE\",\"value\": \"application/x-msdownload,application/x-executable\"}]";
@@ -132,6 +136,54 @@ public class waifuvaultTests
             .ReturnsAsync(new HttpResponseMessage(){
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent("[{\"type\": \"MAX_FILE_SIZE\",\"value\": 100},{\"type\": \"BANNED_MIME_TYPE\",\"value\": \"application/x-msdownload,application/x-executable\"}]")
+            })
+            .Verifiable();
+        
+        fileStatsReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("{\"recordCount\": 2, \"recordSize\":100}")
+            })
+            .Verifiable();
+        
+        albumNewReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("{\"token\": \"test-album\", \"bucketToken\":\"test-bucket\", \"publicToken\":null, \"name\":\"test-name\", \"files\":[]}")
+            })
+            .Verifiable();
+        
+        albumWithFilesReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("{\"token\": \"test-album\", \"bucketToken\":\"test-bucket\", \"publicToken\":\"test-public\", \"name\":\"test-name\", \"files\":[{\"token\": \"test-file\",\"url\": \"test-file-url\",\"views\": 0,\"bucket\": \"test-bucket\", \"album\": { \"token\": \"test-album\", \"publicToken\": null, \"name\": \"test-name\", \"bucket\": \"test-bucket\", \"dateCreated\": 0}, \"retentionPeriod\": 0, \"options\": { \"hideFilename\": false, \"oneTimeDownload\": false, \"protected\": false}}]}")
+            })
+            .Verifiable();
+        
+        generalTrueReturn.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(){
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent("{\"success\":true, \"description\":\"yes\"}")
             })
             .Verifiable();
     }
@@ -459,6 +511,147 @@ public class waifuvaultTests
             ItExpr.IsAny<CancellationToken>());
         Assert.True(response);
     }
+
+    [Fact]
+    public async Task TestCreateAlbum()
+    {
+        // Given
+        albumNewReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(albumNewReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.createAlbum("test-bucket", "test-name");
+        
+        // Then
+        albumNewReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post
+                                                 && req.RequestUri.ToString().Contains("/album/test-bucket")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("test-album", response.token);
+        Assert.Equal("test-name", response.name);
+    }
+
+    [Fact]
+    public async Task TestDeleteAlbum()
+    {
+        // Given
+        generalTrueReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(generalTrueReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.deleteAlbum("test-album", true);
+        
+        // Then
+        generalTrueReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Delete
+                                                 && req.RequestUri.ToString().Contains("/album/test-album?deleteFiles=true")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.True(response);
+    }
+
+    [Fact]
+    public async Task TestGetAlbum()
+    {
+        // Given
+        albumWithFilesReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(albumWithFilesReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.getAlbum("test-album");
+        
+        // Then
+        albumWithFilesReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get
+                                                 && req.RequestUri.ToString().Contains("/album/test-album")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("test-album", response.token);
+        Assert.Equal("test-bucket", response.bucketToken);
+        Assert.Equal("test-public", response.publicToken);
+        Assert.Equal("test-name", response.name);
+        Assert.Single(response.files);
+    }
+
+    [Fact]
+    public async Task TestShareAlbum()
+    {
+        // Given
+        generalTrueReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(generalTrueReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.shareAlbum("test-album");
+        
+        // Then
+        generalTrueReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get
+                                                 && req.RequestUri.ToString().Contains("/album/share/test-album")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("yes",response);
+    }
+    
+    [Fact]
+    public async Task TestRevokeAlbum()
+    {
+        // Given
+        generalTrueReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(generalTrueReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.revokeAlbum("test-album");
+        
+        // Then
+        generalTrueReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get
+                                                 && req.RequestUri.ToString().Contains("/album/revoke/test-album")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.True(response);
+    }
+
+    [Fact]
+    public async Task TestAssociateFile()
+    {
+        // Given
+        albumWithFilesReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(albumWithFilesReturn.Object);
+        var files = new List<string>() { "file-1", "file-2" };
+        
+        // When
+        var response = await Waifuvault.Api.associateFile("test-album", files);
+        
+        // Then
+        albumWithFilesReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post
+                                                 && req.RequestUri.ToString().Contains("/album/test-album/associate")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("test-album", response.token);
+        Assert.Equal("test-bucket", response.bucketToken);
+        Assert.Equal("test-public", response.publicToken);
+        Assert.Equal("test-name", response.name);
+        Assert.Single(response.files);
+    }
+    
+    [Fact]
+    public async Task TestDisassociateFile()
+    {
+        // Given
+        albumWithFilesReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(albumWithFilesReturn.Object);
+        var files = new List<string>() { "file-1", "file-2" };
+        
+        // When
+        var response = await Waifuvault.Api.disassociateFile("test-album", files);
+        
+        // Then
+        albumWithFilesReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post
+                                                 && req.RequestUri.ToString().Contains("/album/test-album/disassociate")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal("test-album", response.token);
+        Assert.Equal("test-bucket", response.bucketToken);
+        Assert.Equal("test-public", response.publicToken);
+        Assert.Equal("test-name", response.name);
+        Assert.Single(response.files);
+    }
     
     [Fact]
     public async Task TestGetRestrictions() {
@@ -476,6 +669,25 @@ public class waifuvaultTests
             ItExpr.IsAny<CancellationToken>());
         Assert.Equal(2,response.Restrictions.Count);
         Assert.Equal("100", response.Restrictions.Where(x => x.type == "MAX_FILE_SIZE").Select(x => x.value).First());
+    }
+
+    [Fact]
+    public async Task TestGetFileStats()
+    {
+        // Given
+        fileStatsReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(fileStatsReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.getFileStats();
+        
+        // Then
+        fileStatsReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get
+                                                 && req.RequestUri.ToString().Contains("/resources/stats/files")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.Equal(2,response.recordCount);
+        Assert.Equal(100, response.recordSize);
     }
 
     [Fact]
