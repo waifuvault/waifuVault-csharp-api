@@ -166,6 +166,20 @@ public class Api
         return resp != null ? resp.success : false;
     }
 
+    public static async Task<byte[]> downloadAlbum(string token, CancellationToken? ct = null)
+    {
+        var client = customHttpClient ?? new HttpClient();
+        var cts = new CancellationTokenSource();
+        var url = $"{baseURL}/album/download/{token}";
+        var data = new List<int>();
+        var jsonData = JsonSerializer.Serialize(data);
+        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var fileResponse = await client.PostAsync(url, content, ct != null ? ct.Value : cts.Token);
+        await checkError(fileResponse,true);
+        var fileData = await fileResponse.Content.ReadAsByteArrayAsync();
+        return fileData;
+    }
+
     public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
         var retval = new FileResponse();
         await checkRestrictions(fileObj);
