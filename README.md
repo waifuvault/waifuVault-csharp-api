@@ -15,7 +15,7 @@ dotnet add package Waifuvault
 
 ## Usage
 
-This API contains 18 interactions:
+This API contains 19 interactions:
 
 1. Upload File
 2. Get File Info
@@ -31,10 +31,11 @@ This API contains 18 interactions:
 12. Associate File
 13. Disassociate File
 14. Share Album
-15. Revoke Album 
-16. Get Restrictions 
-17. Clear Restrictions
-18. Get File Stats
+15. Revoke Album
+16. Download Album
+17. Get Restrictions 
+18. Clear Restrictions
+19. Get File Stats
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -450,6 +451,26 @@ Console.WriteLine(resp);
 ```
 
 > **NOTE:** Once revoked, the URL for sharing is destroyed.  If the album is later shared again, the URL issued will be different.
+
+### Download Album
+To download the contents of an album as a zip file, you use the `downloadAlbum` function and
+supply a private or public token for the album.
+
+The zip file will be returned as a buffer.
+
+The function takes the following parameters:
+
+| Option  | Type           | Description                              | Required | Extra info |
+|---------|----------------|------------------------------------------|----------|------------|
+| `token` | `string`       | The private or public token of the album | true     |            |
+
+
+```csharp
+using Waifuvault;
+
+var albumZip = await Waifuvault.Api.downloadAlbum("some-album-token");
+Console.WriteLine(albumZip.Length);
+```
 
 ### Get Restrictions
 
