@@ -652,6 +652,24 @@ public class waifuvaultTests
         Assert.Equal("test-name", response.name);
         Assert.Single(response.files);
     }
+
+    [Fact]
+    public async Task TestDownloadAlbum()
+    {
+        // Given
+        fileReturn.Invocations.Clear();
+        Waifuvault.Api.customHttpClient = new HttpClient(fileReturn.Object);
+        
+        // When
+        var response = await Waifuvault.Api.downloadAlbum("test-album");
+        
+        // Then
+        fileReturn.Protected().Verify("SendAsync",Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post
+                                                 && req.RequestUri.ToString().Contains("/album/download/test-album")),
+            ItExpr.IsAny<CancellationToken>());
+        Assert.True(response.GetType() == typeof(byte[]));
+    }
     
     [Fact]
     public async Task TestGetRestrictions() {
