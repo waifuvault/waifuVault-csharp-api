@@ -6,7 +6,7 @@ namespace Waifuvault;
 
 public class Api
 {
-    public const string baseURL = "https://waifuvault.moe/rest";
+    public static string baseURL = "https://waifuvault.moe/rest";
     public static HttpClient? customHttpClient;
     public static RestrictionResponse? restrictions;
 
@@ -38,6 +38,11 @@ public class Api
         var statsObj = JsonSerializer.Deserialize<FilesInfoResponse>(getFilesResponseData) ??
                        new FilesInfoResponse(0, 0);
         return statsObj;
+    }
+
+    public static void setAltBaseURL(string url)
+    {
+        baseURL = url;
     }
     
     public static async Task<BucketResponse> createBucket()
