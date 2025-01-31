@@ -101,6 +101,7 @@ public class FileResponse
     public string? retentionPeriod { get; set; }
     public int? views { get; set; }
     
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public AlbumInfoResponse? album { get; set; }
     public FileOptions? options { get; set; }
 
