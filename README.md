@@ -342,14 +342,13 @@ Console.WriteLine(resp);
 ```
 
 ### Get Album
-To get the contents of an album, you use the `getAlbum` function and supply the album token.  The token can be either the private token
-or the public token.
+To get the contents of an album, you use the `getAlbum` function and supply the album token.  The token must be a private token.
 
 The function takes the following parameters:
 
-| Option   | Type     | Description            | Required | Extra info                     |
-|----------|----------|------------------------|----------|--------------------------------|
-| `token`  | `string` | The token of the album | true     | Can be private or public token |
+| Option  | Type     | Description                    | Required | Extra info |
+|---------|----------|--------------------------------|----------|------------|
+| `token` | `string` | The private token of the album | true     |            |
 
 This will respond with the album object containing the album information and files contained within the album.
 
