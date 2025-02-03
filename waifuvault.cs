@@ -119,7 +119,7 @@ public class Api
         return albumObj;
     }
 
-    public static async Task<AlbumResponse> associateFile(string token, List<string> fileTokens, CancellationToken? ct = null)
+    public static async Task<AlbumResponse> associateFiles(string token, List<string> fileTokens, CancellationToken? ct = null)
     {
         var client = customHttpClient ?? new HttpClient();
         var cts = new CancellationTokenSource();
@@ -133,7 +133,7 @@ public class Api
         return JsonSerializer.Deserialize<AlbumResponse>(getResponseData) ?? new AlbumResponse();
     }
     
-    public static async Task<AlbumResponse> disassociateFile(string token, List<string> fileTokens, CancellationToken? ct = null)
+    public static async Task<AlbumResponse> disassociateFiles(string token, List<string> fileTokens, CancellationToken? ct = null)
     {
         var client = customHttpClient ?? new HttpClient();
         var cts = new CancellationTokenSource();
@@ -171,13 +171,12 @@ public class Api
         return resp != null ? resp.success : false;
     }
 
-    public static async Task<byte[]> downloadAlbum(string token, CancellationToken? ct = null)
+    public static async Task<byte[]> downloadAlbum(string token, List<int> files, CancellationToken? ct = null)
     {
         var client = customHttpClient ?? new HttpClient();
         var cts = new CancellationTokenSource();
         var url = $"{baseURL}/album/download/{token}";
-        var data = new List<int>();
-        var jsonData = JsonSerializer.Serialize(data);
+        var jsonData = JsonSerializer.Serialize(files);
         var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var fileResponse = await client.PostAsync(url, content, ct != null ? ct.Value : cts.Token);
         await checkError(fileResponse,true);

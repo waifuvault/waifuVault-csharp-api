@@ -448,7 +448,7 @@ public class waifuvaultTests
         // Given
         fileReturn.Invocations.Clear();
         Waifuvault.Api.customHttpClient = new HttpClient(fileReturn.Object);
-        var file = new Waifuvault.FileResponse("test-token","https://waifuvault.moe/f/something");
+        var file = new Waifuvault.FileResponse("test-token",1,"https://waifuvault.moe/f/something");
         
         // When
         var response = await Waifuvault.Api.getFile(file,"dangerWaifu");
@@ -608,7 +608,7 @@ public class waifuvaultTests
     }
 
     [Fact]
-    public async Task TestAssociateFile()
+    public async Task TestAssociateFiles()
     {
         // Given
         albumWithFilesReturn.Invocations.Clear();
@@ -616,7 +616,7 @@ public class waifuvaultTests
         var files = new List<string>() { "file-1", "file-2" };
         
         // When
-        var response = await Waifuvault.Api.associateFile("test-album", files);
+        var response = await Waifuvault.Api.associateFiles("test-album", files);
         
         // Then
         albumWithFilesReturn.Protected().Verify("SendAsync",Times.Once(),
@@ -631,7 +631,7 @@ public class waifuvaultTests
     }
     
     [Fact]
-    public async Task TestDisassociateFile()
+    public async Task TestDisassociateFiles()
     {
         // Given
         albumWithFilesReturn.Invocations.Clear();
@@ -639,7 +639,7 @@ public class waifuvaultTests
         var files = new List<string>() { "file-1", "file-2" };
         
         // When
-        var response = await Waifuvault.Api.disassociateFile("test-album", files);
+        var response = await Waifuvault.Api.disassociateFiles("test-album", files);
         
         // Then
         albumWithFilesReturn.Protected().Verify("SendAsync",Times.Once(),
@@ -661,7 +661,8 @@ public class waifuvaultTests
         Waifuvault.Api.customHttpClient = new HttpClient(fileReturn.Object);
         
         // When
-        var response = await Waifuvault.Api.downloadAlbum("test-album");
+        var files = new List<int>();
+        var response = await Waifuvault.Api.downloadAlbum("test-album", files);
         
         // Then
         fileReturn.Protected().Verify("SendAsync",Times.Once(),
