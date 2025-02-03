@@ -28,8 +28,8 @@ This API contains 19 interactions:
 9. Create Album
 10. Delete Album
 11. Get Album
-12. Associate File
-13. Disassociate File
+12. Associate Files
+13. Disassociate Files
 14. Share Album
 15. Revoke Album
 16. Download Album
@@ -363,8 +363,8 @@ Console.WriteLine(album.name);
 Console.WriteLine(album.files);  // Array of file objects
 ```
 
-### Associate File
-To add files to an album, you use the `associateFile` function and supply the private album token and
+### Associate Files
+To add files to an album, you use the `associateFiles` function and supply the private album token and
 a list of file tokens.
 
 The function takes the following parameters:
@@ -379,30 +379,30 @@ This will respond with the new album object containing the added files.
 ```csharp
 using Waifuvault;
 var files = new List<string>() { "file-token-1", "file-token-2" };
-var album = await Waifuvault.Api.associateFile("some-album-token", files);
+var album = await Waifuvault.Api.associateFiles("some-album-token", files);
 
 Console.WriteLine(album.token);
 Console.WriteLine(album.name);
 Console.WriteLine(album.files);  // Array of file objects
 ```
 
-### Disassociate File
-To remove files from an album, you use the `disassociateFile` function and supply the private album token and
+### Disassociate Files
+To remove files from an album, you use the `disassociateFiles` function and supply the private album token and
 a list of file tokens.
 
 The function takes the following parameters:
 
-| Option  | Type           | Description                         | Required | Extra info |
-|---------|----------------|-------------------------------------|----------|------------|
-| `token` | `string`       | The private token of the album      | true     |            |
-| `files` | `list[string]` | List of file tokens to add to album | true     |            |
+| Option  | Type           | Description                              | Required | Extra info |
+|---------|----------------|------------------------------------------|----------|------------|
+| `token` | `string`       | The private token of the album           | true     |            |
+| `files` | `list[string]` | List of file tokens to remove from album | true     |            |
 
 This will respond with the new album object with the files removed.
 
 ```csharp
 using Waifuvault;
 var files = new List<string>() { "file-token-1", "file-token-2" };
-var album = await Waifuvault.Api.disassociateFile("some-album-token", files);
+var album = await Waifuvault.Api.disassociateFiles("some-album-token", files);
 
 Console.WriteLine(album.token);
 Console.WriteLine(album.name);
@@ -452,22 +452,48 @@ Console.WriteLine(resp);
 > **NOTE:** Once revoked, the URL for sharing is destroyed.  If the album is later shared again, the URL issued will be different.
 
 ### Download Album
-To download the contents of an album as a zip file, you use the `downloadAlbum` function and
-supply a private or public token for the album.
+To download the contents of an album as a zip file, you use the `downloadAlbum` function and supply a private or public
+token for the album.
+
+You can also supply the file ids as an array to selectively download files. these ids can be found as part of the
+get info response.
 
 The zip file will be returned as a buffer.
 
 The function takes the following parameters:
 
-| Option  | Type           | Description                              | Required | Extra info |
-|---------|----------------|------------------------------------------|----------|------------|
-| `token` | `string`       | The private or public token of the album | true     |            |
+| Option       | Type       | Description                              | Required | Extra info                                             |
+|--------------|------------|------------------------------------------|----------|--------------------------------------------------------|
+| `albumToken` | `string`   | The private or public token of the album | true     |                                                        |
+| `files`      | `number[]` | The ids of the files to download         | false    | the ids can be found as part of the file info response |
 
+download all files:
 
 ```csharp
 using Waifuvault;
 
-var albumZip = await Waifuvault.Api.downloadAlbum("some-album-token");
+var files = new List<int>();
+var albumZip = await Waifuvault.Api.downloadAlbum("some-album-token",files);
+Console.WriteLine(albumZip.Length);
+```
+
+selective files:
+
+```csharp
+using Waifuvault;
+
+var files = new List<int>() {1};
+var albumZip = await Waifuvault.Api.downloadAlbum("some-album-token", files);
+Console.WriteLine(albumZip.Length);
+```
+
+get a file id from token:
+
+```csharp
+using Waifuvault;
+var fileInfo = await Waifuvault.Api.fileInfo("some-file-token",false);
+var files = new List<int>() { fileInfo.id };
+var albumZip = await Waifuvault.Api.downloadAlbum("some-album-token", files);
 Console.WriteLine(albumZip.Length);
 ```
 

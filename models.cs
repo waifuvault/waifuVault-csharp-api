@@ -100,13 +100,15 @@ public class FileResponse
     [JsonConverter(typeof(StringConverter))]
     public string? retentionPeriod { get; set; }
     public int? views { get; set; }
+    public int? id { get; set; }
     
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public AlbumInfoResponse? album { get; set; }
     public FileOptions? options { get; set; }
 
-    public FileResponse(string? token = null, string? url = null, string? bucket = null, int? views = null, string? retentionPeriod = null, AlbumInfoResponse? album = null, FileOptions? options = null) {
+    public FileResponse(string? token = null, int? id = null, string? url = null, string? bucket = null, int? views = null, string? retentionPeriod = null, AlbumInfoResponse? album = null, FileOptions? options = null) {
         this.token = token;
+        this.id = id;
         this.url = url;
         this.bucket = bucket;
         this.views = views;
