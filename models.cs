@@ -191,7 +191,7 @@ public class Restriction
                 }
                 return;
             default:
-                throw (new NotImplementedException($"Restriction type {this.type} is not implemented"));
+                return;
         }
     }
 }
