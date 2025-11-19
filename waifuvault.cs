@@ -184,9 +184,12 @@ public class Api
         return fileData;
     }
 
-    public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null) {
+    public static async Task<FileResponse> uploadFile(FileUpload fileObj, CancellationToken? ct = null, bool ignoreClientRestrictions = false) {
         var retval = new FileResponse();
-        await checkRestrictions(fileObj);
+        if (!ignoreClientRestrictions)
+        {
+            await checkRestrictions(fileObj);
+        }
         var targetUrl = fileObj.buildURL(String.IsNullOrEmpty(fileObj.bucketToken) ? baseURL : baseURL + $"/{fileObj.bucketToken}");
 
         if (!String.IsNullOrEmpty(fileObj.url)) {

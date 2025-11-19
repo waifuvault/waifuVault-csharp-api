@@ -61,6 +61,8 @@ To Upload a file, use the `uploadFile` function. This function takes the followi
 
 > **NOTE:** Server restrictions are checked by the SDK client side *before* upload, and will throw an exception if they are violated
 
+As an optional parameter, ignoreClientRestrictions can be set to override client side restrictions checking.
+
 Using a URL:
 
 ```cs
@@ -79,6 +81,17 @@ using Waifuvault;
 
 var uploadFile = new Waifuvault.FileUpload("../aCoolFile.png");
 var uploadResp = await Waifuvault.Api.uploadFile(uploadFile);
+
+Console.WriteLine(uploadResp.url);
+```
+
+Using a file path, ignoring client side restrictions:
+
+```cs
+using Waifuvault;
+
+var uploadFile = new Waifuvault.FileUpload("../aCoolFile.png");
+var uploadResp = await Waifuvault.Api.uploadFile(uploadFile, null, True);
 
 Console.WriteLine(uploadResp.url);
 ```
