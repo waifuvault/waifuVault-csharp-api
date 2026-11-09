@@ -191,23 +191,8 @@ public class Api
             await checkRestrictions(fileObj);
         }
         var targetUrl = fileObj.buildURL(String.IsNullOrEmpty(fileObj.bucketToken) ? baseURL : baseURL + $"/{fileObj.bucketToken}");
-
-        if (!String.IsNullOrEmpty(fileObj.url)) {
-            // URL Upload
-            List<KeyValuePair<string, string>> keyValuePairs = new List<KeyValuePair<string, string>>
-            {
-                new KeyValuePair<string, string>("url", fileObj.url)
-            };
-
-            if (!String.IsNullOrEmpty(fileObj.password))
-            {
-                keyValuePairs.Add(new KeyValuePair<string, string>("password", fileObj.password));
-            }
-
-            var urlContent = new FormUrlEncodedContent(keyValuePairs);
-            retval = await sendContent(targetUrl, urlContent, ct);
-        }
-        else if(!String.IsNullOrEmpty(fileObj.filename) && fileObj.buffer == null) {
+        
+        if(!String.IsNullOrEmpty(fileObj.filename) && fileObj.buffer == null) {
             // File Upload
             var content = new MultipartFormDataContent();
             using(var fileStream = new FileStream(fileObj.filename, FileMode.Open)) {
