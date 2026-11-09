@@ -7,7 +7,7 @@
 This contains the official API bindings for uploading, deleting and obtaining files
 with [waifuvault.moe](https://waifuvault.moe/). Contains a full up to date API for interacting with the service
 
-**NOTE WELL:** As of version 1.4.7 of this API, support for URL based upload has been removed
+**NOTE WELL:** As of version 1.4.8 of this API, support for URL based upload has been removed
 
 ## Installation
 
