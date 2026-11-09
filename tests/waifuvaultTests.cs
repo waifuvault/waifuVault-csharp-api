@@ -197,28 +197,6 @@ public class waifuvaultTests
     }
 
     [Fact]
-    public async Task TestURLUpload() {
-        // Given
-        okResponseNumeric.Invocations.Clear();
-        Waifuvault.Api.customHttpClient = new HttpClient(okResponseNumeric.Object);
-        Waifuvault.Api.clearRestrictions();
-        setupRestrictions();
-        var upload = new Waifuvault.FileUpload("https://walker.moe/assets/sunflowers.png",expires:"10m");
-        
-        // When
-        var response = await Waifuvault.Api.uploadFile(upload);
-        
-        // Then
-        okResponseNumeric.Protected().Verify("SendAsync",Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Put),
-            ItExpr.IsAny<CancellationToken>());
-        Assert.Equal("https://waifuvault.moe/f/something",response.url);
-        Assert.Equal("test-token", response.token);
-        Assert.Equal(false,response.options.fileprotected);
-        Assert.Equal("100", response.retentionPeriod);
-    }
-
-    [Fact]
     public async Task TestFileUpload() {
         // Given
         okResponseNumeric.Invocations.Clear();

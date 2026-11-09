@@ -8,7 +8,6 @@ namespace Waifuvault;
 public class FileUpload
 {
     public string? filename { get; set; }
-    public string? url { get; set; }
     public byte[]? buffer { get; set; }
     public string? bucketToken { get; set; }
     public string? expires { get; set; }
@@ -17,14 +16,7 @@ public class FileUpload
     public bool? oneTimeDownload { get; set; }
 
     public FileUpload(string target, string? bucket = null, string? expires = null, string? password = null, bool? hidefilename = null, bool? oneTimeDownload = null) {
-        if(target.ToLower().StartsWith("http://") || target.ToLower().StartsWith("https://"))
-        {
-            this.url = target;
-        }
-        else 
-        {
-            this.filename = target;
-        }
+        this.filename = target;
         this.buffer = null;
         this.bucketToken = bucket;
         this.expires = expires;
@@ -160,11 +152,6 @@ public class Restriction
 
     public void passes(FileUpload file)
     {
-        if (!String.IsNullOrEmpty(file.url))
-        {
-            return;
-        }
-
         switch (this.type)
         {
             case "MAX_FILE_SIZE":

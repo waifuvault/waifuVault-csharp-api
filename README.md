@@ -7,6 +7,8 @@
 This contains the official API bindings for uploading, deleting and obtaining files
 with [waifuvault.moe](https://waifuvault.moe/). Contains a full up to date API for interacting with the service
 
+**NOTE WELL:** As of version 1.4.5 of this API, support for URL based upload has been removed
+
 ## Installation
 
 ```sh
@@ -50,7 +52,6 @@ To Upload a file, use the `uploadFile` function. This function takes the followi
 | Option            | Type          | Description                                                     | Required       | Extra info                       |
 |-------------------|---------------|-----------------------------------------------------------------|----------------|----------------------------------|
 | `filename`        | `string `     | The path to the file to upload                                  | true if File   | File path                        |
-| `url`             | `string`      | The URL of the file to target                                   | true if URL    | Filename with extension          |
 | `buffer`          | `byte array`  | Byte array containing file to upload                            | true if buffer | Needs filename set also          |
 | `bucketToken`     | `string`      | Token for a bucket to upload the file into                      | false          | Create bucket gives token        |
 | `expires`         | `string`      | A string containing a number and a unit (1d = 1day)             | false          | Valid units are `m`, `h` and `d` |
@@ -59,20 +60,11 @@ To Upload a file, use the `uploadFile` function. This function takes the followi
 | `ct`              | `canceltoken` | An optional cancellation token that can be passed in            | false          | Standard cancellation token      |
 | `oneTimeDownload` | `boolean`     | if supplied, the file will be deleted as soon as it is accessed | false          |                                  |
 
+> **NOTE WELL:** Support for legacy URL uploads feature has been removed
+
 > **NOTE:** Server restrictions are checked by the SDK client side *before* upload, and will throw an exception if they are violated
 
 As an optional parameter, ignoreClientRestrictions can be set to override client side restrictions checking.
-
-Using a URL:
-
-```cs
-using Waifuvault;
-
-var uploadFile = new Waifuvault.FileUpload("https://waifuvault.moe/assets/custom/images/08.png");
-var uploadResp = await Waifuvault.Api.uploadFile(uploadFile);
-
-Console.WriteLine(uploadResp.url);
-```
 
 Using a file path:
 
